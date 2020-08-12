@@ -60,7 +60,7 @@ namespace Vertx.Utilities
 		public IEnumerator<(T key, TValue value)> GetEnumerator()
 		{
 			TValue[] values = Values;
-			Array array = valuesArray ?? Enum.GetValues(typeof(T));
+			Array array = valuesArray ?? (valuesArray = Enum.GetValues(typeof(T)));
 			for (int i = hidesFirstEnum ? 1 : 0; i < values.Length; i++)
 				yield return ((T) array.GetValue(i), values[i]);
 		}
