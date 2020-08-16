@@ -37,9 +37,21 @@ namespace Vertx.Utilities
 			}
 		}
 
-		public TValue GetValue(T key) => Values[(int) (object) key];
+		public TValue GetValue(T key) => this[key];
 
-		public TValue this[T key] => Values[(int) (object) key];
+		public TValue this[T key]
+		{
+			get
+			{
+				int index = (int) (object) key;
+				if (index >= Values.Length)
+				{
+					Debug.LogError($"Provided key \"{key}\" is out of range in {this}.\nValues will need to be serialized by using the inspector on this object.\nA default value has been returned.");
+					return default;
+				}
+				return Values[index];
+			}
+		}
 
 		public int Count => Values.Length;
 
@@ -88,6 +100,7 @@ namespace Vertx.Utilities
 			{
 				if (dictionary.TryGetValue(key, out var value))
 					return value;
+				Debug.LogError($"Provided key \"{key}\" is out of range in {this}.\nValues will need to be serialized by using the inspector on this object.\nA default value has been returned.");
 				return default;
 			}
 		}
@@ -112,10 +125,11 @@ namespace Vertx.Utilities
 
 		public void OnAfterDeserialize()
 		{
-			int count = Mathf.Min(keys.Length, values.Length);
+			int count = keys == null || values == null ? 0 : Mathf.Min(keys.Length, values.Length);
 			dictionary = new Dictionary<T, TValue>();
 			for (int i = hidesFirstEnum ? 1 : 0; i < count; i++)
 			{
+				// ReSharper disable twice PossibleNullReferenceException
 				T key = keys[i];
 				if (dictionary.ContainsKey(key)) continue;
 				dictionary.Add(key, values[i]);
