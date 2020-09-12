@@ -1,7 +1,9 @@
 {
     "name": "Vertx.Utilities.Editor",
     "rootNamespace": "Vertx.Utilities.Editor",
-    "references": [],
+    "references": [
+        "GUID:52dd4d866d63f4340922689e9cd83b77"
+    ],
     "includePlatforms": [
         "Editor"
     ],
