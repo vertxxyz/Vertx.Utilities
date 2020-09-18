@@ -380,7 +380,7 @@ namespace Vertx.Utilities.Editor
 			public BuildSceneScope()
 			{
 				sceneManagerSetup = EditorSceneManager.GetSceneManagerSetup();
-				buildSceneCount = SceneManager.sceneCountInBuildSettings;
+				buildSceneCount = EditorBuildSettings.scenes.Length;
 				currentScene = default;
 				progressIncrement = 1 / (float)buildSceneCount;
 			}
@@ -407,7 +407,7 @@ namespace Vertx.Utilities.Editor
 				if (++buildIndex >= buildSceneCount)
 					return false;
 
-				string path = SceneUtility.GetScenePathByBuildIndex(buildIndex);
+				string path = EditorBuildSettings.scenes[buildIndex].path;
 				EditorSceneManager.OpenScene(path, buildIndex == 0 ? OpenSceneMode.Single : OpenSceneMode.Additive);
 				currentScene = SceneManager.GetSceneByBuildIndex(buildIndex);
 				return true;
