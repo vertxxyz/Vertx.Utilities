@@ -1,4 +1,5 @@
 using UnityEngine;
+using UnityEngine.Serialization;
 
 namespace Vertx.Utilities
 {
@@ -11,6 +12,7 @@ namespace Vertx.Utilities
 	public abstract class EnumDataDescription<T> : ScriptableObject
 		where T : EnumToValueBase
 	{
+		[FormerlySerializedAs("Data")]
 		[SerializeField] private T data;
 		public T Data => data;
 	}
