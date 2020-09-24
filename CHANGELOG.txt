@@ -4,8 +4,11 @@ All notable changes to this package will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
+## [1.0.4] - 2020-09-24
+ - InstancePool now uses a HashSet and logs in the editor when items are pooled twice.
+
 ## [1.0.3] - 2020-09-21
- - Added some logging and copying functionality to SerializedProperty
+ - Added some logging and copying functionality to SerializedProperty.
 
 ## [1.0.2] - 2020-09-18
  - Added Object.TrimName to trim (Clone) from instantiated objects.
@@ -15,4 +18,4 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
  - Added missing EnumToValueDrawer, updated it to support direct generic serialization.
 
 ## [1.0.0]
- - Initial releases
+ - Initial release.

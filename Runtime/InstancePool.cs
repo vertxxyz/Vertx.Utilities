@@ -38,9 +38,9 @@ namespace Vertx.Utilities
 	public static class InstancePool<TInstanceType> where TInstanceType : Component
 	{
 		/// <summary>
-		/// Dictionary of prefab components to stacks of pooled instances.
+		/// Dictionary of prefab components to HashSets of pooled instances.
 		/// </summary>
-		private static readonly Dictionary<TInstanceType, Stack<TInstanceType>> pool = new Dictionary<TInstanceType, Stack<TInstanceType>>();
+		private static readonly Dictionary<TInstanceType, HashSet<TInstanceType>> pool = new Dictionary<TInstanceType, HashSet<TInstanceType>>();
 
 		private static void MoveToInstancePoolScene(TInstanceType instance)
 		{
@@ -51,29 +51,29 @@ namespace Vertx.Utilities
 
 		public static void Warmup(TInstanceType prefab, int count, Transform parent = null)
 		{
-			if (!pool.TryGetValue(prefab, out var stack))
-				pool.Add(prefab, stack = new Stack<TInstanceType>());
-			for (int i = stack.Count; i < count; i++)
+			if (!pool.TryGetValue(prefab, out var hashSet))
+				pool.Add(prefab, hashSet = new HashSet<TInstanceType>());
+			for (int i = hashSet.Count; i < count; i++)
 			{
 				var instance = Object.Instantiate(prefab, parent);
 				instance.name = prefab.name;
 				instance.gameObject.SetActive(false);
 				MoveToInstancePoolScene(instance);
-				stack.Push(instance);
+				hashSet.Add(instance);
 			}
 		}
 
 		public static IEnumerator WarmupCoroutine(TInstanceType prefab, int count, Transform parent = null)
 		{
-			if (!pool.TryGetValue(prefab, out var stack))
-				pool.Add(prefab, stack = new Stack<TInstanceType>());
-			for (int i = stack.Count; i < count; i++)
+			if (!pool.TryGetValue(prefab, out var hashSet))
+				pool.Add(prefab, hashSet = new HashSet<TInstanceType>());
+			for (int i = hashSet.Count; i < count; i++)
 			{
 				var instance = Object.Instantiate(prefab, parent);
 				instance.name = prefab.name;
 				instance.gameObject.SetActive(false);
 				MoveToInstancePoolScene(instance);
-				stack.Push(instance);
+				hashSet.Add(instance);
 				yield return null;
 			}
 		}
@@ -114,21 +114,32 @@ namespace Vertx.Utilities
 			Assert.IsNotNull(prefab, $"Prefab passed to InstancePool<{typeof(TInstanceType).Name}>{nameof(Get)} was null");
 
 			// Use the pool if we have one already
-			if (pool.TryGetValue(prefab, out var stack))
+			if (pool.TryGetValue(prefab, out var hashSet))
 			{
-				if (stack.Count > 0)
+				if (hashSet.Count > 0)
 				{
-					TInstanceType poppedInstance;
-					bool found;
-					do
+					TInstanceType poppedInstance = null;
+					bool found = false;
+					bool hasNull = false;
+					foreach (TInstanceType i in hashSet)
 					{
-						//Iterate to remove null items from the stack
-						poppedInstance = stack.Pop();
-						found = poppedInstance != null;
-					} while (!found && stack.Count > 0);
+						found = i != null;
+						if (found)
+						{
+							poppedInstance = i;
+							break;
+						}
+
+						hasNull = true;
+					}
+
+					if (hasNull)
+						hashSet.RemoveWhere(i => i == null);
 
 					if (found)
 					{
+						hashSet.Remove(poppedInstance);
+						
 						// Activate and re-parent
 						poppedInstance.gameObject.SetActive(true);
 						Transform t = poppedInstance.transform;
@@ -187,16 +198,29 @@ namespace Vertx.Utilities
 		public static void Pool(TInstanceType prefab, TInstanceType instance)
 		{
 			// Create a pool if we don't have one already.
-			if (!pool.TryGetValue(prefab, out var stack))
+			if (!pool.TryGetValue(prefab, out var hashSet))
 			{
-				stack = new Stack<TInstanceType>();
-				pool.Add(prefab, stack);
+				hashSet = new HashSet<TInstanceType>();
+				pool.Add(prefab, hashSet);
+				hashSet.Add(instance);
+			}
+			else
+			{
+				if (hashSet.Contains(instance))
+				{
+					#if UNITY_EDITOR
+					Debug.LogWarning($"Item {instance} is requested to be pooled for a second time. The request has been ignored.");
+					#endif
+				}
+				else
+				{
+					hashSet.Add(instance);
+				}
 			}
 
-			// Disable the object and push it to the stack.
+			// Disable the object and push it to the HashSet.
 			instance.gameObject.SetActive(false);
 			MoveToInstancePoolScene(instance);
-			stack.Push(instance);
 		}
 
 		/// <summary>
