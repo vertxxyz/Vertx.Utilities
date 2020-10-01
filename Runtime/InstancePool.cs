@@ -8,12 +8,12 @@ using Object = UnityEngine.Object;
 
 namespace Vertx.Utilities
 {
-	internal static class InstancePool
+	public static class InstancePool
 	{
 		private const string instancePoolSceneName = "Instance Pool";
 		private static Scene instancePoolScene;
 
-		public static Scene GetInstancePoolScene()
+		internal static Scene GetInstancePoolScene()
 		{
 			if (!instancePoolScene.IsValid() || !instancePoolScene.isLoaded)
 			{
@@ -29,27 +29,56 @@ namespace Vertx.Utilities
 				return instancePoolScene.IsValid() ? instancePoolScene : SceneManager.CreateScene(instancePoolSceneName, new CreateSceneParameters(LocalPhysicsMode.None));
 			}
 		}
+		
+		internal static readonly HashSet<IComponentPool> instancePools = new HashSet<IComponentPool>();
+
+		/// <summary>
+		/// Destroys extra instances beyond the capacities set (or defaulted to.)
+		/// </summary>
+		/// <param name="defaultCapacity">The default maximum amount of instances kept when <see cref="TrimExcess"/> is called</param>
+		public static void TrimExcess(int defaultCapacity = 20)
+		{
+			foreach (IComponentPool pool in instancePools)
+				pool.TrimExcess(defaultCapacity);
+		}
+	}
+	
+	internal interface IComponentPool
+	{
+		void TrimExcess(int defaultCapacity);
+	}
+
+	public static partial class InstancePool<TInstanceType> where TInstanceType : Component
+	{
+		private static readonly ComponentPool<TInstanceType> componentPool = new ComponentPool<TInstanceType>();
+
+		static InstancePool() => InstancePool.instancePools.Add(componentPool);
 	}
 
 	/// <summary>
 	/// A pool for Component instances.
 	/// </summary>
 	/// <typeparam name="TInstanceType">The Component Type associated with the pool</typeparam>
-	public static class InstancePool<TInstanceType> where TInstanceType : Component
+	internal class ComponentPool<TInstanceType> : IComponentPool where TInstanceType : Component
 	{
 		/// <summary>
 		/// Dictionary of prefab components to HashSets of pooled instances.
 		/// </summary>
-		private static readonly Dictionary<TInstanceType, HashSet<TInstanceType>> pool = new Dictionary<TInstanceType, HashSet<TInstanceType>>();
+		private readonly Dictionary<TInstanceType, HashSet<TInstanceType>> pool = new Dictionary<TInstanceType, HashSet<TInstanceType>>();
 
-		private static void MoveToInstancePoolScene(TInstanceType instance)
+		private void MoveToInstancePoolScene(TInstanceType instance)
 		{
 			instance.transform.SetParent(null);
 			SceneManager.MoveGameObjectToScene(instance.gameObject, InstancePool.GetInstancePoolScene());
 		}
-		//private static void MoveToInstanceToParentScene(TInstanceType instance) => SceneManager.MoveGameObjectToScene(instance.gameObject, InstancePool.GetInstancePoolScene());
-
-		public static void Warmup(TInstanceType prefab, int count, Transform parent = null)
+		
+		/// <summary>
+		/// Ensures the pool has <see cref="count"/> number of instances of <see cref="prefab"/> pooled.
+		/// </summary>
+		/// <param name="prefab">The prefab key to instance.</param>
+		/// <param name="count">The amount to ensure is pooled.</param>
+		/// <param name="parent">Optional parent</param>
+		public void Warmup(TInstanceType prefab, int count, Transform parent = null)
 		{
 			if (!pool.TryGetValue(prefab, out var hashSet))
 				pool.Add(prefab, hashSet = new HashSet<TInstanceType>());
@@ -63,7 +92,13 @@ namespace Vertx.Utilities
 			}
 		}
 
-		public static IEnumerator WarmupCoroutine(TInstanceType prefab, int count, Transform parent = null)
+		/// <summary>
+		/// Ensures the pool has <see cref="count"/> number of instances of <see cref="prefab"/> pooled.
+		/// </summary>
+		/// <param name="prefab">The prefab key to instance.</param>
+		/// <param name="count">The amount to ensure is pooled.</param>
+		/// <param name="parent">Optional parent</param>
+		public IEnumerator WarmupCoroutine(TInstanceType prefab, int count, Transform parent = null)
 		{
 			if (!pool.TryGetValue(prefab, out var hashSet))
 				pool.Add(prefab, hashSet = new HashSet<TInstanceType>());
@@ -84,7 +119,7 @@ namespace Vertx.Utilities
 		/// <param name="prefab">The prefab key to retrieve instances of.</param>
 		/// <param name="parent">The parent to parent instances under.</param>
 		/// <returns>An instance retrieved from the pool.</returns>
-		public static TInstanceType Get(TInstanceType prefab, Transform parent = null)
+		public TInstanceType Get(TInstanceType prefab, Transform parent = null)
 			=> Get(prefab, parent, Vector3.zero, Quaternion.identity);
 
 		/// <summary>
@@ -96,7 +131,7 @@ namespace Vertx.Utilities
 		/// <param name="rotation">Rotation of the instance</param>
 		/// <param name="space">Which space the position and rotation is applied in</param>
 		/// <returns>An instance retrieved from the pool.</returns>
-		public static TInstanceType Get(TInstanceType prefab, Transform parent, Vector3 position, Quaternion rotation, Space space = Space.World) =>
+		public TInstanceType Get(TInstanceType prefab, Transform parent, Vector3 position, Quaternion rotation, Space space = Space.World) =>
 			Get(prefab, parent, position, rotation, Vector3.one, space);
 
 		/// <summary>
@@ -109,7 +144,7 @@ namespace Vertx.Utilities
 		/// <param name="localScale">Local Scale of the instance</param>
 		/// <param name="space">Which space the position and rotation is applied in</param>
 		/// <returns>An instance retrieved from the pool.</returns>
-		public static TInstanceType Get(TInstanceType prefab, Transform parent, Vector3 position, Quaternion rotation, Vector3 localScale, Space space = Space.World)
+		public TInstanceType Get(TInstanceType prefab, Transform parent, Vector3 position, Quaternion rotation, Vector3 localScale, Space space = Space.World)
 		{
 			Assert.IsNotNull(prefab, $"Prefab passed to InstancePool<{typeof(TInstanceType).Name}>{nameof(Get)} was null");
 
@@ -195,7 +230,7 @@ namespace Vertx.Utilities
 		/// </summary>
 		/// <param name="prefab">The prefab key used when the instance was retrieved via <see cref="Get(TInstanceType,UnityEngine.Transform)"/></param>
 		/// <param name="instance">The instance to return to the pool.</param>
-		public static void Pool(TInstanceType prefab, TInstanceType instance)
+		public void Pool(TInstanceType prefab, TInstanceType instance)
 		{
 			// Create a pool if we don't have one already.
 			if (!pool.TryGetValue(prefab, out var hashSet))
@@ -227,10 +262,61 @@ namespace Vertx.Utilities
 		/// If you are temporarily working with pools for prefabs you can remove them from the system by calling this function.
 		/// </summary>
 		/// <param name="prefab">The prefab key referring to the pool.</param>
-		public static void RemovePrefabPool(TInstanceType prefab)
+		public void RemovePrefabPool(TInstanceType prefab)
 		{
 			if (pool.ContainsKey(prefab))
 				pool.Remove(prefab);
 		}
+
+		#region Capacity
+		
+		private readonly Dictionary<TInstanceType, int> capacities = new Dictionary<TInstanceType, int>();
+
+		/// <summary>
+		/// Sets the capacity used by <see cref="TrimExcess"/> for all instances shared between the type <see cref="TInstanceType"/>
+		/// </summary>
+		/// <param name="capacity">The maximum amount of instances kept when <see cref="TrimExcess"/> is called.</param>
+		public void SetCapacities(int capacity)
+		{
+			foreach (var pair in pool)
+				capacities[pair.Key] = capacity;
+		}
+
+		/// <summary>
+		/// Sets the capacity used by <see cref="TrimExcess"/>
+		/// </summary>
+		/// <param name="prefab">The prefab used as a key within the pool.</param>
+		/// <param name="capacity">The maximum amount of instances kept when <see cref="TrimExcess"/> is called.</param>
+		public void SetCapacity(TInstanceType prefab, int capacity) 
+			=> capacities[prefab] = capacity;
+
+		/// <summary>
+		/// Destroys extra instances beyond the capacities set (or defaulted to.)
+		/// </summary>
+		/// <param name="defaultCapacity">The default maximum amount of instances kept when <see cref="TrimExcess"/> is called
+		/// if <see cref="SetCapacity"/> or <see cref="SetCapacities"/> was not set.</param>
+		public void TrimExcess(int defaultCapacity = 20)
+		{
+			HashSet<TInstanceType> temp = new HashSet<TInstanceType>();
+			foreach (var pair in pool)
+			{
+				if (!capacities.TryGetValue(pair.Key, out int capacity))
+					capacity = defaultCapacity;
+				HashSet<TInstanceType> instances = pair.Value;
+				if(instances.Count <= capacity) continue;
+				temp.Clear();
+				int c = 0;
+				foreach (var instance in instances)
+				{
+					if (c++ < capacity)
+						temp.Add(instance);
+					else
+						Object.Destroy(instance.gameObject);
+				}
+				instances.IntersectWith(temp);
+			}
+		}
+
+		#endregion
 	}
 }
