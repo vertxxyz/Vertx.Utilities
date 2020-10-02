@@ -8,7 +8,7 @@ using Object = UnityEngine.Object;
 
 namespace Vertx.Utilities
 {
-	public static class InstancePool
+	public static partial class InstancePool
 	{
 		private const string instancePoolSceneName = "Instance Pool";
 		private static Scene instancePoolScene;
