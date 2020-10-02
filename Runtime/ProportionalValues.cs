@@ -8,31 +8,51 @@ namespace Vertx.Utilities
 	public class ProportionalValues
 	{
 		private readonly float[] values;
-		private readonly float total;
+		public float Total { get; }
+		public event Action<int, float> OnValueChanged;
 
 		public ProportionalValues(float[] values, float total = 1)
 		{
 			this.values = values;
-			this.total = total;
+			Total = total;
+			Setup();
+		}
 
+		public ProportionalValues(int count, float total = 1)
+		{
+			values = new float[count];
+			Total = total;
+			Setup();
+		}
+
+		private void Setup()
+		{
 			float valueTotal = 0;
 			foreach (float value in values)
 				valueTotal += value;
 
 			if (valueTotal < 0.00001f)
 			{
-				float toBeDistributedDivided = total / (values.Length - 1);
+				float toBeDistributedDivided = Total / (values.Length - 1);
 				for (var i = 0; i < values.Length; i++)
 					values[i] = toBeDistributedDivided;
 			}
 			else
 			{
 				for (int i = 0; i < values.Length; i++)
-					values[i] = values[i] / valueTotal * total;
+					values[i] /= valueTotal * Total;
 			}
 		}
 
-		public float GetValue(int index)
+		public int Length => values.Length;
+
+		public float this[int i]
+		{
+			get => GetValue(i);
+			set => SetValue(i, value);
+		}
+
+		private float GetValue(int index)
 		{
 			if (index < 0 || index >= values.Length)
 				throw new IndexOutOfRangeException($"Index {index} does not exist in the {nameof(ProportionalValues)} current state. " +
@@ -40,12 +60,12 @@ namespace Vertx.Utilities
 			return values[index];
 		}
 
-		public void SetValue(int index, float value)
+		private void SetValue(int index, float value)
 		{
 			if (index < 0 || index >= values.Length)
 				throw new IndexOutOfRangeException();
 			values[index] = value;
-			float toBeDistributed = total - value;
+			float toBeDistributed = Total - value;
 
 			//If there's nothing to be distributed at all
 			if (toBeDistributed < 0.00001f)
@@ -55,6 +75,7 @@ namespace Vertx.Utilities
 				{
 					if (i == index) continue;
 					values[i] = 0;
+					OnValueChanged?.Invoke(i, 0);
 				}
 				return;
 			}
@@ -76,6 +97,7 @@ namespace Vertx.Utilities
 				{
 					if (i == index) continue;
 					values[i] = toBeDistributedDivided;
+					OnValueChanged?.Invoke(i, toBeDistributedDivided);
 				}
 
 				return;
@@ -85,7 +107,9 @@ namespace Vertx.Utilities
 			for (int i = 0; i < values.Length; i++)
 			{
 				if (i == index) continue;
-				values[i] = values[i] / otherValuesTotal * toBeDistributed;
+				float v = values[i] / otherValuesTotal * toBeDistributed;
+				values[i] = v;
+				OnValueChanged?.Invoke(i, v);
 			}
 		}
 	}
