@@ -6,6 +6,7 @@
 // </auto-generated>
 //------------------------------------------------------------------------------
 using UnityEngine;
+using System.Collections;
 
 namespace Vertx.Utilities
 {
@@ -99,5 +100,14 @@ namespace Vertx.Utilities
 		/// <param name="defaultCapacity">The default maximum amount of instances kept when <see cref="TrimExcess"/> is called</param>
 		public static void TrimExcess(int defaultCapacity = 20)
 			=> componentPool.TrimExcess(defaultCapacity);
+
+		/// <summary>
+		/// Destroys extra instances beyond the capacities set (or defaulted to.)
+		/// </summary>
+		/// <param name="prefab">The prefab used as a key within the pool.</param>
+		/// <param name="defaultCapacity">The default maximum amount of instances kept when <see cref="TrimExcess"/> is called
+		/// if <see cref="SetCapacity"/> or <see cref="SetCapacities"/> was not set.</param>
+		public static void TrimExcess(TInstanceType prefab, int defaultCapacity = 20)
+			=> componentPool.TrimExcess(prefab, defaultCapacity);
 	}
 }

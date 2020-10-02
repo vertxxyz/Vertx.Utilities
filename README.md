@@ -37,6 +37,8 @@ InstancePool.SetCapacities<PoolObject>(30);
 InstancePool.TrimExcess();
 // Trims instances in the PoolObject pool down to their capacities (20 is the default argument)
 InstancePool.TrimExcess<PoolObject>();
+// Trims instances from a specific prefab down to its capacity (20 is the default argument)
+InstancePool.TrimExcess(prefab);
 ```
 
 #### Warmup

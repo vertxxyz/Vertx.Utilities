@@ -110,5 +110,15 @@ namespace Vertx.Utilities
 		public static void TrimExcess<TInstanceType>(int defaultCapacity = 20)
 			where TInstanceType : Component
 			=> InstancePool<TInstanceType>.TrimExcess(defaultCapacity);
+
+		/// <summary>
+		/// Destroys extra instances beyond the capacities set (or defaulted to.)
+		/// </summary>
+		/// <param name="prefab">The prefab used as a key within the pool.</param>
+		/// <param name="defaultCapacity">The default maximum amount of instances kept when <see cref="TrimExcess"/> is called
+		/// if <see cref="SetCapacity"/> or <see cref="SetCapacities"/> was not set.</param>
+		public static void TrimExcess<TInstanceType>(TInstanceType prefab, int defaultCapacity = 20)
+			where TInstanceType : Component
+			=> InstancePool<TInstanceType>.TrimExcess(prefab, defaultCapacity);
 	}
 }

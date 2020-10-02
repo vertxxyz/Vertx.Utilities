@@ -302,8 +302,10 @@ namespace Vertx.Utilities
 			{
 				if (!capacities.TryGetValue(pair.Key, out int capacity))
 					capacity = defaultCapacity;
+				
 				HashSet<TInstanceType> instances = pair.Value;
 				if(instances.Count <= capacity) continue;
+				
 				temp.Clear();
 				int c = 0;
 				foreach (var instance in instances)
@@ -315,6 +317,34 @@ namespace Vertx.Utilities
 				}
 				instances.IntersectWith(temp);
 			}
+		}
+
+		/// <summary>
+		/// Destroys extra instances beyond the capacities set (or defaulted to.)
+		/// </summary>
+		/// <param name="prefab">The prefab used as a key within the pool.</param>
+		/// <param name="defaultCapacity">The default maximum amount of instances kept when <see cref="TrimExcess"/> is called
+		/// if <see cref="SetCapacity"/> or <see cref="SetCapacities"/> was not set.</param>
+		public void TrimExcess(TInstanceType prefab, int defaultCapacity = 20)
+		{
+			if (!pool.TryGetValue(prefab, out var instances))
+				return;
+			
+			if (!capacities.TryGetValue(prefab, out int capacity))
+				capacity = defaultCapacity;
+			
+			if(instances.Count <= capacity) return;
+			
+			HashSet<TInstanceType> temp = new HashSet<TInstanceType>();
+			int c = 0;
+			foreach (var instance in instances)
+			{
+				if (c++ < capacity)
+					temp.Add(instance);
+				else
+					Object.Destroy(instance.gameObject);
+			}
+			instances.IntersectWith(temp);
 		}
 
 		#endregion
