@@ -8,9 +8,11 @@ General Utilities for Unity
     - [ProportionalValues](#ProportionalValues)
     - [Misc](#Misc)
 - [Editor](#Editor)
+    - [AssetInstance](#AssetInstance)
+    - [EditorUtils](#EditorUtils)
 
-## Runtime
-### InstancePool
+# Runtime
+## InstancePool
 **Simple static class for managing object pools.**  
 #### Pooling and Unpooling
 ```cs
@@ -46,9 +48,7 @@ StartCoroutine(InstancePool.WarmupCoroutine(prefab, 30));
 InstancePool.WarmupCoroutine(prefab, 30);
 ```
 
----
-
-### EnumToValue
+## EnumToValue
 **Data type for associating serialized data with an enum.**  
 This data is kept updated via the Inspector so to maintain parity it is important to inspect these fields when updating the associated enums.
 #### Example Types
@@ -70,7 +70,8 @@ public class ShapeElement
 }
 ```
 #### Field Declaration
-⚠️ `EnumToValue` only supports enums with consecutive values, if you are using enums with gaps then `EnumToValueDictionary` handles that with minor additional overhead. ⚠️
+⚠️ `EnumToValue` only supports enums with consecutive values, if you are using enums with gaps then `EnumToValueDictionary` handles that with minor additional overhead. ⚠️  
+You can optionally add the `[HideFirstEnumValue]` attribute to hide the None/0 enum if it is irrelevant.
 ```cs
 [SerializeField]
 private EnumToValue<Shape, ShapeElement> data;
@@ -116,7 +117,7 @@ public class DataDescriptionExample : EnumDataDescription<DataDescriptionExample
 }
 ```
 
-### ProportionalValues
+## ProportionalValues
 **Helper class for managing multiple values so they always total the same amount.**  
 The example below will keep all child Sliders the component in sync proportionally.
 ```cs
@@ -137,7 +138,7 @@ private void Start()
 }
 ```
 
-### Misc
+## Misc
 #### TrimName
 Trims appended text from Object names. Will trim `(Clone)` by default.  
 This is not recursive, and only will remove a single instance of the word.
@@ -145,6 +146,33 @@ This is not recursive, and only will remove a single instance of the word.
 object.TrimName();
 ```
 
----
+# Editor
+## AssetInstance
+A Generic class for creating singleton ScriptableObject assets. Helpful for settings and build scripts.  
+An AssetInstance will instance itself at its `ResourcesLocation` when `.Instance` is called if it has not previously been instanced. You can override its name with the `NicifiedTypeName` property.
 
-## Editor
+## EditorUtils
+Many helper functions for random editor functionality I use, often or otherwise.  
+- Assets
+    - `LoadAssetOfType`
+    - `LoadAssetsOfType`  
+      Loads assets matching a type with an optional name query.
+    - `TryGetGUIDs`
+- Folders
+    - `ShowFolderContents`
+    - `ShowFolder`
+    - `GetCurrentlyFocusedProjectFolder`
+- Editor Extensions
+    - `GetEditorExtensionsOfType`  
+    Returns lists of containing newly instanced classes that inherit from the provided type.
+- Scene
+    - `BuildSceneScope`  
+    A scope that can be enumerated that will iterate over the scenes in the Build Settings and reset when disposed. The scope also provides a method to draw a progress bar.
+    - `GetAllComponentsInScene`
+    - `GetAllGameObjectsInScene`  
+    Recursively iterates all Components/GameObjects
+    - `GetGameObjectsIncludingRoot`  
+    Recursively iterates a Transform hierarchy
+- Logging
+  - `GetPathForObject`  
+  Returns an appropriate full path to the object. This includes the scene if relevant.

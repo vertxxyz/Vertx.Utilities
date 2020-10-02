@@ -139,11 +139,11 @@ namespace Vertx.Utilities.Editor
 		}
 
 		/// <summary>
-		/// Returns instances of the types inherited from Type T, casted to type TConverted
+		/// Returns instances of the types inherited from a type, casted to type TConverted
 		/// </summary>
 		/// <param name="type">Type query for inheritance</param>
 		/// <typeparam name="TConverted">The type to cast new instances to.</typeparam>
-		/// <returns>List of instances inherited from Type T</returns>
+		/// <returns>List of instances inherited from the provided type</returns>
 		public static List<TConverted> GetEditorExtensionsOfType<TConverted>(Type type)
 		{
 			IEnumerable<Type> derivedTypes = TypeCache.GetTypesDerivedFrom(type);
