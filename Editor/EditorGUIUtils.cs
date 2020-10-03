@@ -450,6 +450,54 @@ namespace Vertx.Utilities.Editor
 
 		#endregion
 
+		#region ReorderableList
+		
+		private static GUIStyle preButton;
+		private static GUIStyle footerBackground;
+		private static GUIStyle PreButton => preButton ?? (preButton = "RL FooterButton");
+		private static GUIStyle FooterBackground => footerBackground ?? (footerBackground = "RL Footer");
+		private static GUIContent iconToolbarPlusMore;
+		public static GUIContent IconToolbarPlusMore => iconToolbarPlusMore ?? (iconToolbarPlusMore = EditorGUIUtility.TrIconContent("Toolbar Plus More", "Choose to add to list"));
+		private static GUIContent iconToolbarPlus;
+		public static GUIContent IconToolbarPlus => iconToolbarPlus ?? (iconToolbarPlus = EditorGUIUtility.TrIconContent("Toolbar Plus", "Add to list"));
+
+		/// <summary>
+		/// Draws an alternate add button if run after a reorderable list's DoLayoutList function
+		/// </summary>
+		/// <param name="lastRect">The position of the list</param>
+		/// <param name="buttonRect">The position of this button</param>
+		/// <param name="displayDropdownPlus">Whether or not the + should have a dropdown styling</param>
+		/// <returns>Whether the button was pressed or not</returns>
+		public static bool ReorderableListAddButton(out Rect lastRect, out Rect buttonRect, bool displayDropdownPlus = true)
+		{
+			lastRect = GUILayoutUtility.GetLastRect();
+			buttonRect = new Rect(lastRect.x + (lastRect.width - 75), lastRect.yMax - 20, 33, 20);
+			GUI.Label(buttonRect, GUIContent.none, FooterBackground);
+			buttonRect.height -= 2;
+			buttonRect.x += 2;
+			buttonRect.width -= 4;
+			return GUI.Button(buttonRect, displayDropdownPlus ? IconToolbarPlusMore : IconToolbarPlus, PreButton);
+		}
+
+		/// <summary>
+		/// Draws a Clear button in the top right of a ReorderableList's header when run in the header callback.
+		/// </summary>
+		/// <param name="rect">The total header rect</param>
+		/// <param name="property">The list property</param>
+		public static void ReorderableListHeaderClearButton(Rect rect, SerializedProperty property)
+		{
+			rect.height = EditorGUIUtility.singleLineHeight;
+			float intendedX = rect.xMax - 50;
+			float x = Mathf.Max(rect.xMin, intendedX);
+			float width = 56 + (x - intendedX);
+			if (!GUI.Button(new Rect(x, rect.y, width, rect.height), "Clear", EditorStyles.toolbarButton))
+				return;
+			property.arraySize = 0;
+			property.serializedObject.ApplyModifiedProperties();
+		}
+
+		#endregion
+
 		private static GUIStyle centeredMiniLabel;
 
 		public static GUIStyle CenteredMiniLabel => centeredMiniLabel ?? (centeredMiniLabel = new GUIStyle(EditorStyles.miniLabel)

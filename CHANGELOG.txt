@@ -4,9 +4,12 @@ All notable changes to this package will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
-## [1.2.0] - 2020-10-02
- - ProportionalValues now has an OnValueChanged callback and is accessed via indexers and Length.
+## [2.0.0] - 2020-10-03
  - InstancePool type can be inferred. InstancePool<MyComponent>.Get(prefab) becomes InstancePool.Get(prefab).
+ - ProportionalValues now has an OnValueChanged callback and is accessed via indexers and Length.
+ - PropertyDropdownUtils renamed to AdvancedDropdownUtils and slightly reworked.
+ - Added AdvancedDropdownAttribute. This can be added to types to generate an AdvancedDropdown with them by calling AdvancedDropdownUtils.CreateAdvancedDropdownFromAttribute.
+ - Added EditorGUIUtils ReorderableListAddButton and ReorderableListHeaderClearButton.
 
 ## [1.1.0] - 2020-10-01
  - Added SetCapacity and TrimExcess functions to InstancePool.

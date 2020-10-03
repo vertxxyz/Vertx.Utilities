@@ -1,5 +1,7 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.IO;
+using System.Text;
 using UnityEditor;
 using UnityEngine;
 
@@ -32,6 +34,22 @@ namespace Vertx.Utilities.Editor
 			File.WriteAllText(path, content);
 			AssetDatabase.Refresh();
 			return true;
+		}
+
+		internal static string GenerateTypeNamePath(Type type, StringBuilder stringBuilder, bool skipFirstType, bool nicify)
+		{
+			stringBuilder.Clear();
+			if (skipFirstType)
+				type = type.BaseType;
+			while (type != null)
+			{
+				if (stringBuilder.Length > 0)
+					stringBuilder.Insert(0, '/');
+				stringBuilder.Insert(0, nicify ? ObjectNames.NicifyVariableName(type.Name) : type.Name);
+				type = type.BaseType;
+			}
+
+			return stringBuilder.ToString();
 		}
 	}
 }

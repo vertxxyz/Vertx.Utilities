@@ -10,6 +10,7 @@ General Utilities for Unity
 - [Editor](#Editor)
     - [AssetInstance](#AssetInstance)
     - [EditorUtils](#EditorUtils)
+    - [AdvancedDropdownUtils](#AdvancedDropdownUtils)
 
 # Runtime
 ## InstancePool
@@ -178,3 +179,9 @@ Many helper functions for random editor functionality I use, often or otherwise.
 - Logging
   - `GetPathForObject`  
   Returns an appropriate full path to the object. This includes the scene if relevant.
+    
+## AdvancedDropdownUtils
+**Helper class for authoring `AdvancedDropdown` menus.**  
+`IPropertyDropdownItem` can be implemented to provide names and paths (`"Folder/Sub Folder"`).  
+`CreateAdvancedDropdownFromAttribute` can generate an `AdvancedDropdown` from all types that implement an inherited `AdvancedDropdownAttribute`.  
+`CreateAdvancedDropdownFromType` can generate one from a type inheritance structure.
