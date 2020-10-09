@@ -79,10 +79,9 @@ namespace Vertx.Utilities.Editor
 
 		public static void ShowFolderContents(int folderInstanceId, bool revealAndFrameInFolderTree)
 		{
-			Type tProjectBrowser = Type.GetType("UnityEditor.ProjectBrowser,UnityEditor");
 			MethodInfo showContentsMethod =
-				tProjectBrowser.GetMethod("ShowFolderContents", BindingFlags.NonPublic | BindingFlags.Instance);
-			EditorWindow browser = EditorWindow.GetWindow(tProjectBrowser);
+				ProjectBrowserType.GetMethod("ShowFolderContents", BindingFlags.NonPublic | BindingFlags.Instance);
+			EditorWindow browser = EditorWindow.GetWindow(ProjectBrowserType);
 			if (browser != null)
 				showContentsMethod.Invoke(browser, new object[] {folderInstanceId, revealAndFrameInFolderTree});
 		}
@@ -105,7 +104,7 @@ namespace Vertx.Utilities.Editor
 			ShowFolderContents(
 				GetMainAssetInstanceID(AssetDatabase.GUIDToAssetPath(AssetDatabase.AssetPathToGUID(path))), true
 			);
-			EditorWindow.GetWindow(Type.GetType("UnityEditor.ProjectBrowser,UnityEditor")).Repaint();
+			GetProjectBrowserWindow(true).Repaint();
 		}
 		
 		public static string GetCurrentlyFocusedProjectFolder()
@@ -121,6 +120,36 @@ namespace Vertx.Utilities.Editor
 					return Path.GetDirectoryName(path);
 			}
 			return "Assets";
+		}
+
+		#endregion
+		
+		#region Project Browser
+
+		public static void SetProjectBrowserSearch(string search)
+		{
+			EditorWindow window = GetProjectBrowserWindow(true);
+			ProjectBrowserSetSearch.Invoke(window, new object[] {search});
+		}
+
+		private static Type projectBrowserType;
+
+		private static Type ProjectBrowserType => projectBrowserType ?? (projectBrowserType =
+			Type.GetType("UnityEditor.ProjectBrowser,UnityEditor"));
+
+		private static MethodInfo projectBrowserSetSearch;
+		private static MethodInfo ProjectBrowserSetSearch => ProjectBrowserType.GetMethod("SetSearch", new[] {typeof(string)});
+
+
+		public static EditorWindow GetProjectBrowserWindow(bool forceOpen = false)
+		{
+			EditorWindow projectBrowser = EditorWindow.GetWindow(ProjectBrowserType);
+			if (projectBrowser != null)
+				return projectBrowser;
+			if (!forceOpen)
+				return null;
+			EditorApplication.ExecuteMenuItem("Window/General/Project");
+			return EditorWindow.GetWindow(ProjectBrowserType);
 		}
 
 		#endregion

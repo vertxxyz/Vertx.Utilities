@@ -316,13 +316,13 @@ namespace Vertx.Utilities.Editor
 				case SerializedPropertyType.Color:
 					return property.colorValue.ToString();
 				case SerializedPropertyType.Vector2:
-					return property.vector2Value.ToString();
+					return property.vector2Value.ToString("F7");
 				case SerializedPropertyType.Vector3:
-					return property.vector3Value.ToString();
+					return property.vector3Value.ToString("F7");
 				case SerializedPropertyType.Vector4:
-					return property.vector4Value.ToString();
+					return property.vector4Value.ToString("F7");
 				case SerializedPropertyType.Quaternion:
-					return property.quaternionValue.eulerAngles.ToString();
+					return property.quaternionValue.eulerAngles.ToString("F7");
 				case SerializedPropertyType.FixedBufferSize:
 					return property.fixedBufferSize.ToString();
 				case SerializedPropertyType.Vector2Int:
