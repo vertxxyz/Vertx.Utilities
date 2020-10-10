@@ -66,6 +66,13 @@ namespace Vertx.Utilities
 		/// </summary>
 		private readonly Dictionary<TInstanceType, HashSet<TInstanceType>> pool = new Dictionary<TInstanceType, HashSet<TInstanceType>>();
 
+		/// <summary>
+		/// Returns the amount of pooled instances associated with a prefab key.
+		/// </summary>
+		/// <param name="key">The prefab key.</param>
+		/// <returns>The amount of pooled instances associated with the key.</returns>
+		public int GetCurrentlyPooledCount(TInstanceType key) => !pool.TryGetValue(key, out var set) ? 0 : set.Count;
+
 		private void MoveToInstancePoolScene(TInstanceType instance)
 		{
 			instance.transform.SetParent(null);

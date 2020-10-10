@@ -13,6 +13,15 @@ namespace Vertx.Utilities
 	public static partial class InstancePool
 	{
 		/// <summary>
+		/// Returns the amount of pooled instances associated with a prefab key.
+		/// </summary>
+		/// <param name="key">The prefab key.</param>
+		/// <returns>The amount of pooled instances associated with the key.</returns>
+		public static int GetCurrentlyPooledCount<TInstanceType>(TInstanceType key)
+			where TInstanceType : Component
+			=> InstancePool<TInstanceType>.GetCurrentlyPooledCount(key);
+
+		/// <summary>
 		/// Ensures the pool has <see cref="count"/> number of instances of <see cref="prefab"/> pooled.
 		/// </summary>
 		/// <param name="prefab">The prefab key to instance.</param>

@@ -106,7 +106,7 @@ namespace Vertx.Utilities.Editor
 			);
 			GetProjectBrowserWindow(true).Repaint();
 		}
-		
+
 		public static string GetCurrentlyFocusedProjectFolder()
 		{
 			foreach (var obj in Selection.GetFiltered<Object>(SelectionMode.Assets))
@@ -119,12 +119,17 @@ namespace Vertx.Utilities.Editor
 				if (File.Exists(path))
 					return Path.GetDirectoryName(path);
 			}
+
 			return "Assets";
 		}
 
 		#endregion
-		
+
 		#region Project Browser
+
+		private static MethodInfo projectBrowserSetSearch;
+		private static MethodInfo ProjectBrowserSetSearch
+			=> projectBrowserSetSearch ?? (projectBrowserSetSearch = ProjectBrowserType.GetMethod("SetSearch", new[] {typeof(string)}));
 
 		public static void SetProjectBrowserSearch(string search)
 		{
@@ -137,9 +142,6 @@ namespace Vertx.Utilities.Editor
 		private static Type ProjectBrowserType => projectBrowserType ?? (projectBrowserType =
 			Type.GetType("UnityEditor.ProjectBrowser,UnityEditor"));
 
-		private static MethodInfo projectBrowserSetSearch;
-		private static MethodInfo ProjectBrowserSetSearch => ProjectBrowserType.GetMethod("SetSearch", new[] {typeof(string)});
-
 
 		public static EditorWindow GetProjectBrowserWindow(bool forceOpen = false)
 		{
@@ -150,6 +152,36 @@ namespace Vertx.Utilities.Editor
 				return null;
 			EditorApplication.ExecuteMenuItem("Window/General/Project");
 			return EditorWindow.GetWindow(ProjectBrowserType);
+		}
+
+		#endregion
+
+		#region Scene Hierarchy
+
+		private static MethodInfo hierarchyWindowSetSearch;
+		private static MethodInfo HierarchyWindowSetSearch
+			=> hierarchyWindowSetSearch ?? (hierarchyWindowSetSearch = HierarchyWindowType.GetMethod("SetSearchFilter", BindingFlags.NonPublic | BindingFlags.Instance));
+
+		public static void SetSceneViewHierarchySearch(string search)
+		{
+			EditorWindow window = GetSceneViewHierarchyWindow();
+			if (window == null) return;
+			HierarchyWindowSetSearch.Invoke(window, new object[] {search, 0, false, false});
+		}
+
+		private static Type hierarchyWindowType;
+		private static Type HierarchyWindowType => hierarchyWindowType ?? (hierarchyWindowType =
+			Type.GetType("UnityEditor.SceneHierarchyWindow,UnityEditor"));
+
+		public static EditorWindow GetSceneViewHierarchyWindow(bool forceOpen = false)
+		{
+			EditorWindow hierarchyWindow = EditorWindow.GetWindow(HierarchyWindowType);
+			if (hierarchyWindow != null)
+				return hierarchyWindow;
+			if (!forceOpen)
+				return null;
+			EditorApplication.ExecuteMenuItem("Window/General/Hierarchy");
+			return EditorWindow.GetWindow(HierarchyWindowType);
 		}
 
 		#endregion
@@ -192,7 +224,7 @@ namespace Vertx.Utilities.Editor
 				sceneManagerSetup = EditorSceneManager.GetSceneManagerSetup();
 				buildSceneCount = EditorBuildSettings.scenes.Length;
 				currentScene = default;
-				progressIncrement = 1 / (float)buildSceneCount;
+				progressIncrement = 1 / (float) buildSceneCount;
 			}
 
 			public void Dispose()
@@ -204,7 +236,7 @@ namespace Vertx.Utilities.Editor
 
 			private readonly float progressIncrement;
 
-			public void DisplayProgressBar(string title, string info, float localProgress) 
+			public void DisplayProgressBar(string title, string info, float localProgress)
 				=> EditorUtility.DisplayProgressBar(title, info, (buildIndex + localProgress * progressIncrement) / buildSceneCount);
 
 			private readonly int buildSceneCount;
@@ -249,7 +281,7 @@ namespace Vertx.Utilities.Editor
 				T[] components = @base.GetComponents<T>();
 				foreach (T component in components)
 				{
-					if(component != null)
+					if (component != null)
 						yield return component;
 				}
 
@@ -271,7 +303,7 @@ namespace Vertx.Utilities.Editor
 					yield return gameObject;
 			}
 		}
-		
+
 		public static IEnumerable<GameObject> GetGameObjectsIncludingRoot(Transform @base)
 		{
 			//Get gameObject
@@ -299,52 +331,52 @@ namespace Vertx.Utilities.Editor
 			switch (@object)
 			{
 				case Component component:
+				{
+					//The component already includes the base child in its ToString function, so we can use the parent.
+					Transform transform = component.transform.parent;
+					string tPath;
+					if (transform != null)
 					{
-						//The component already includes the base child in its ToString function, so we can use the parent.
-						Transform transform = component.transform.parent;
-						string tPath;
-						if (transform != null)
+						tPath = AnimationUtility.CalculateTransformPath(transform, null);
+						if (persistent)
 						{
-							tPath = AnimationUtility.CalculateTransformPath(transform, null);
-							if (persistent)
-							{
-								//For prefabs, the path already includes the root. So we can remove it from the transform path.
-								int indexOf = tPath.IndexOf('/');
-								tPath = indexOf < 0 ? null : tPath.Substring(indexOf + 1);
-							}
+							//For prefabs, the path already includes the root. So we can remove it from the transform path.
+							int indexOf = tPath.IndexOf('/');
+							tPath = indexOf < 0 ? null : tPath.Substring(indexOf + 1);
 						}
-						else
-							tPath = null;
-
-						var scene = component.gameObject.scene;
-						if (scene.IsValid())
-							path += $"({scene.path}) ";
-						path += string.IsNullOrEmpty(tPath) ? component.ToString() : $"{tPath}/{component}";
 					}
+					else
+						tPath = null;
+
+					var scene = component.gameObject.scene;
+					if (scene.IsValid())
+						path += $"({scene.path}) ";
+					path += string.IsNullOrEmpty(tPath) ? component.ToString() : $"{tPath}/{component}";
+				}
 					break;
 				case GameObject gameObject:
+				{
+					//The gameObject already includes the base child in its ToString function, so we can use the parent.
+					Transform transform = gameObject.transform.parent;
+					string tPath;
+					if (transform != null)
 					{
-						//The gameObject already includes the base child in its ToString function, so we can use the parent.
-						Transform transform = gameObject.transform.parent;
-						string tPath;
-						if (transform != null)
+						tPath = AnimationUtility.CalculateTransformPath(transform, null);
+						if (persistent)
 						{
-							tPath = AnimationUtility.CalculateTransformPath(transform, null);
-							if (persistent)
-							{
-								//For prefabs, the path already includes the root. So we can remove it from the transform path.
-								int indexOf = tPath.IndexOf('/');
-								tPath = indexOf < 0 ? null : tPath.Substring(indexOf + 1);
-							}
+							//For prefabs, the path already includes the root. So we can remove it from the transform path.
+							int indexOf = tPath.IndexOf('/');
+							tPath = indexOf < 0 ? null : tPath.Substring(indexOf + 1);
 						}
-						else
-							tPath = null;
-
-						var scene = gameObject.scene;
-						if (scene.IsValid())
-							path += $"({scene.path}) ";
-						path += string.IsNullOrEmpty(tPath) ? gameObject.ToString() : $"{tPath}/{gameObject}";
 					}
+					else
+						tPath = null;
+
+					var scene = gameObject.scene;
+					if (scene.IsValid())
+						path += $"({scene.path}) ";
+					path += string.IsNullOrEmpty(tPath) ? gameObject.ToString() : $"{tPath}/{gameObject}";
+				}
 					break;
 				default:
 					path += @object.ToString();
