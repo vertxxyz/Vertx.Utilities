@@ -456,6 +456,8 @@ namespace Vertx.Utilities.Editor
 
 		#endregion
 
+		#region Styles
+
 		private static GUIStyle centeredMiniLabel;
 
 		public static GUIStyle CenteredMiniLabel => centeredMiniLabel ?? (centeredMiniLabel = new GUIStyle(EditorStyles.miniLabel)
@@ -478,5 +480,20 @@ namespace Vertx.Utilities.Editor
 		});
 
 		public static float HeightWithSpacing => EditorGUIUtility.singleLineHeight + EditorGUIUtility.standardVerticalSpacing;
+
+		#endregion
+
+		public class ZeroIndentScope : IDisposable
+		{
+			public readonly int PreviousIndent;
+
+			public ZeroIndentScope()
+			{
+				PreviousIndent = EditorGUI.indentLevel;
+				EditorGUI.indentLevel = 0;
+			}
+
+			public void Dispose() => EditorGUI.indentLevel = PreviousIndent;
+		}
 	}
 }

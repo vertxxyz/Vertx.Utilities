@@ -255,7 +255,9 @@ Many helper functions for random editor GUI functionality I use, often or otherw
   Advances the rect to the next position with a standardVerticalSpacing gap.
 - `rect.Indent()`
 - `rect.GetIndentedRect()`  
-  EditorGUI.IndentedRect alternatives.
+  EditorGUI.IndentedRect alternatives.  
+- `EditorGUIUtils.ZeroIndentScope`  
+  Temporarily resets EditorGUI.indentLevel
 
 #### ReorderableList
 

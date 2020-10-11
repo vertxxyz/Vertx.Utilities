@@ -81,6 +81,15 @@ namespace Vertx.Utilities
 			=> componentPool.Pool(prefab, instance);
 
 		/// <summary>
+		/// Queries whether the pool contains a specific instance of a prefab.
+		/// </summary>
+		/// <param name="prefab">The prefab key referring to the pool.</param>
+		/// <param name="instance">The instance we are querying.</param>
+		/// <returns>True if the pool contains the queried instance.</returns>
+		public static bool IsPooled(TInstanceType prefab, TInstanceType instance)
+			=> componentPool.IsPooled(prefab, instance);
+
+		/// <summary>
 		/// If you are temporarily working with pools for prefabs you can remove them from the system by calling this function.
 		/// </summary>
 		/// <param name="prefab">The prefab key referring to the pool.</param>

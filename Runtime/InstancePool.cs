@@ -13,14 +13,12 @@ namespace Vertx.Utilities
 		private const string instancePoolSceneName = "Instance Pool";
 		private static Scene instancePoolScene;
 
-		internal static Scene GetInstancePoolScene()
+		private static Scene GetInstancePoolScene()
 		{
-			if (!instancePoolScene.IsValid() || !instancePoolScene.isLoaded)
-			{
-				instancePoolScene = GetNewScene();
+			if (instancePoolScene.IsValid() && instancePoolScene.isLoaded)
 				return instancePoolScene;
-			}
-
+			
+			instancePoolScene = GetNewScene();
 			return instancePoolScene;
 
 			Scene GetNewScene()
@@ -40,6 +38,22 @@ namespace Vertx.Utilities
 		{
 			foreach (IComponentPool pool in instancePools)
 				pool.TrimExcess(defaultCapacity);
+		}
+		
+		/// <summary>
+		/// Moves a GameObject instance to the Instance Pool scene. This will not pool the object.
+		/// </summary>
+		/// <param name="instance">A Component attached to the GameObject that will be moved.</param>
+		public static void MoveToInstancePoolScene(Component instance) => MoveToInstancePoolScene(instance.gameObject);
+
+		/// <summary>
+		/// Moves a GameObject instance to the Instance Pool scene. This will not pool the object.
+		/// </summary>
+		/// <param name="instance">The GameObject that will be moved.</param>
+		public static void MoveToInstancePoolScene(GameObject instance)
+		{
+			instance.transform.SetParent(null);
+			SceneManager.MoveGameObjectToScene(instance, GetInstancePoolScene());
 		}
 	}
 	
@@ -73,12 +87,7 @@ namespace Vertx.Utilities
 		/// <returns>The amount of pooled instances associated with the key.</returns>
 		public int GetCurrentlyPooledCount(TInstanceType key) => !pool.TryGetValue(key, out var set) ? 0 : set.Count;
 
-		private void MoveToInstancePoolScene(TInstanceType instance)
-		{
-			instance.transform.SetParent(null);
-			SceneManager.MoveGameObjectToScene(instance.gameObject, InstancePool.GetInstancePoolScene());
-		}
-		
+
 		/// <summary>
 		/// Ensures the pool has <see cref="count"/> number of instances of <see cref="prefab"/> pooled.
 		/// </summary>
@@ -94,7 +103,7 @@ namespace Vertx.Utilities
 				var instance = Object.Instantiate(prefab, parent);
 				instance.name = prefab.name;
 				instance.gameObject.SetActive(false);
-				MoveToInstancePoolScene(instance);
+				InstancePool.MoveToInstancePoolScene(instance);
 				hashSet.Add(instance);
 			}
 		}
@@ -114,7 +123,7 @@ namespace Vertx.Utilities
 				var instance = Object.Instantiate(prefab, parent);
 				instance.name = prefab.name;
 				instance.gameObject.SetActive(false);
-				MoveToInstancePoolScene(instance);
+				InstancePool.MoveToInstancePoolScene(instance);
 				hashSet.Add(instance);
 				yield return null;
 			}
@@ -262,8 +271,16 @@ namespace Vertx.Utilities
 
 			// Disable the object and push it to the HashSet.
 			instance.gameObject.SetActive(false);
-			MoveToInstancePoolScene(instance);
+			InstancePool.MoveToInstancePoolScene(instance);
 		}
+
+		/// <summary>
+		/// Queries whether the pool contains a specific instance of a prefab.
+		/// </summary>
+		/// <param name="prefab">The prefab key referring to the pool.</param>
+		/// <param name="instance">The instance we are querying.</param>
+		/// <returns>True if the pool contains the queried instance.</returns>
+		public bool IsPooled(TInstanceType prefab, TInstanceType instance) => pool.TryGetValue(prefab, out var hashSet) && hashSet.Contains(instance);
 
 		/// <summary>
 		/// If you are temporarily working with pools for prefabs you can remove them from the system by calling this function.
