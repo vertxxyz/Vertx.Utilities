@@ -4,6 +4,11 @@ All notable changes to this package will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
+## [2.2.0] - 2020-10-14
+ - Changed InstancePool to instance prefabs with their original position, rotation, and scale if not provided.
+ - Fixed InstancePool disregarding the provided localScale parameter.
+ - Added support for Enter Play Mode Options disabling domain reload.
+
 ## [2.1.2] - 2020-10-11
  - Added InstancePool.IsPooled(prefab, instance)
  - Added EditorGUIUtils.ZeroIndentScope for temporarily resetting EditorGUI.indentLevel

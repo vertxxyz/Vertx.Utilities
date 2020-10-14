@@ -27,7 +27,15 @@ namespace Vertx.Utilities
 				return instancePoolScene.IsValid() ? instancePoolScene : SceneManager.CreateScene(instancePoolSceneName, new CreateSceneParameters(LocalPhysicsMode.None));
 			}
 		}
-		
+
+		[RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
+		static void ResetStaticInstances()
+		{
+			foreach (IComponentPool pool in instancePools)
+				pool.RemoveAllPrefabPools();
+			instancePools.Clear();
+		}
+
 		internal static readonly HashSet<IComponentPool> instancePools = new HashSet<IComponentPool>();
 
 		/// <summary>
@@ -60,6 +68,7 @@ namespace Vertx.Utilities
 	internal interface IComponentPool
 	{
 		void TrimExcess(int defaultCapacity);
+		void RemoveAllPrefabPools();
 	}
 
 	public static partial class InstancePool<TInstanceType> where TInstanceType : Component
@@ -114,17 +123,22 @@ namespace Vertx.Utilities
 		/// <param name="prefab">The prefab key to instance.</param>
 		/// <param name="count">The amount to ensure is pooled.</param>
 		/// <param name="parent">Optional parent</param>
-		public IEnumerator WarmupCoroutine(TInstanceType prefab, int count, Transform parent = null)
+		/// <param name="instancesPerFrame">The amount of instances created per frame</param>
+		public IEnumerator WarmupCoroutine(TInstanceType prefab, int count, Transform parent = null, int instancesPerFrame = 1)
 		{
 			if (!pool.TryGetValue(prefab, out var hashSet))
 				pool.Add(prefab, hashSet = new HashSet<TInstanceType>());
-			for (int i = hashSet.Count; i < count; i++)
+			while (hashSet.Count < count)
 			{
-				var instance = Object.Instantiate(prefab, parent);
-				instance.name = prefab.name;
-				instance.gameObject.SetActive(false);
-				InstancePool.MoveToInstancePoolScene(instance);
-				hashSet.Add(instance);
+				int amount = Mathf.Clamp(instancesPerFrame, 0, count - hashSet.Count);
+				for (int i = 0; i < amount; i++)
+				{
+					var instance = Object.Instantiate(prefab, parent);
+					instance.name = prefab.name;
+					instance.gameObject.SetActive(false);
+					InstancePool.MoveToInstancePoolScene(instance);
+					hashSet.Add(instance);
+				}
 				yield return null;
 			}
 		}
@@ -136,7 +150,12 @@ namespace Vertx.Utilities
 		/// <param name="parent">The parent to parent instances under.</param>
 		/// <returns>An instance retrieved from the pool.</returns>
 		public TInstanceType Get(TInstanceType prefab, Transform parent = null)
-			=> Get(prefab, parent, Vector3.zero, Quaternion.identity);
+		{
+			Transform prefabTransform = prefab.transform;
+			var position = prefabTransform.localPosition;
+			var rotation = prefabTransform.localRotation;
+			return Get(prefab, parent, position, rotation);
+		}
 
 		/// <summary>
 		/// Retrieves a positioned instance from the pool.
@@ -147,8 +166,11 @@ namespace Vertx.Utilities
 		/// <param name="rotation">Rotation of the instance</param>
 		/// <param name="space">Which space the position and rotation is applied in</param>
 		/// <returns>An instance retrieved from the pool.</returns>
-		public TInstanceType Get(TInstanceType prefab, Transform parent, Vector3 position, Quaternion rotation, Space space = Space.World) =>
-			Get(prefab, parent, position, rotation, Vector3.one, space);
+		public TInstanceType Get(TInstanceType prefab, Transform parent, Vector3 position, Quaternion rotation, Space space = Space.World)
+		{
+			var scale = prefab.transform.localScale;
+			return Get(prefab, parent, position, rotation, scale, space);
+		}
 
 		/// <summary>
 		/// Retrieves a positioned instance from the pool.
@@ -202,12 +224,12 @@ namespace Vertx.Utilities
 						{
 							case Space.World:
 								t.SetPositionAndRotation(position, rotation);
-								t.localScale = Vector3.one;
+								t.localScale = localScale;
 								break;
 							case Space.Self:
 								t.localPosition = position;
 								t.localRotation = rotation;
-								t.localScale = Vector3.one;
+								t.localScale = localScale;
 								break;
 							default:
 								throw new ArgumentOutOfRangeException(nameof(space), space, null);
@@ -221,18 +243,24 @@ namespace Vertx.Utilities
 			// Otherwise return a new instance.
 			// Only when an instance is returned do we need to create a pool.
 			TInstanceType instance;
-			// Position
 			switch (space)
 			{
 				case Space.World:
+				{
 					instance = Object.Instantiate(prefab, position, rotation, parent);
+					Transform t = instance.transform;
+					t.localScale = localScale;
 					break;
+				}
 				case Space.Self:
+				{
 					instance = Object.Instantiate(prefab, parent);
 					Transform t = instance.transform;
 					t.localPosition = position;
 					t.localRotation = rotation;
+					t.localScale = localScale;
 					break;
+				}
 				default:
 					throw new ArgumentOutOfRangeException(nameof(space), space, null);
 			}
@@ -248,6 +276,9 @@ namespace Vertx.Utilities
 		/// <param name="instance">The instance to return to the pool.</param>
 		public void Pool(TInstanceType prefab, TInstanceType instance)
 		{
+			Assert.IsNotNull(prefab, $"Prefab passed to InstancePool<{typeof(TInstanceType).Name}>{nameof(Pool)} was null");
+			Assert.IsNotNull(instance, $"Instance passed to InstancePool<{typeof(TInstanceType).Name}>{nameof(Pool)} was null");
+			
 			// Create a pool if we don't have one already.
 			if (!pool.TryGetValue(prefab, out var hashSet))
 			{
@@ -284,12 +315,19 @@ namespace Vertx.Utilities
 
 		/// <summary>
 		/// If you are temporarily working with pools for prefabs you can remove them from the system by calling this function.
+		/// This will not remove the instances that are currently pooled. Un-pool all instances before calling this function.
 		/// </summary>
 		/// <param name="prefab">The prefab key referring to the pool.</param>
 		public void RemovePrefabPool(TInstanceType prefab)
 		{
 			if (pool.ContainsKey(prefab))
 				pool.Remove(prefab);
+		}
+
+		
+		void IComponentPool.RemoveAllPrefabPools()
+		{
+			pool.Clear();
 		}
 
 		#region Capacity

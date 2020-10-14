@@ -35,8 +35,9 @@ namespace Vertx.Utilities
 		/// <param name="prefab">The prefab key to instance.</param>
 		/// <param name="count">The amount to ensure is pooled.</param>
 		/// <param name="parent">Optional parent</param>
-		public static System.Collections.IEnumerator WarmupCoroutine(TInstanceType prefab, int count, Transform parent = null)
-			=> componentPool.WarmupCoroutine(prefab, count, parent);
+		/// <param name="instancesPerFrame">The amount of instances created per frame</param>
+		public static System.Collections.IEnumerator WarmupCoroutine(TInstanceType prefab, int count, Transform parent = null, int instancesPerFrame = 1)
+			=> componentPool.WarmupCoroutine(prefab, count, parent, instancesPerFrame);
 
 		/// <summary>
 		/// Retrieves an instance from the pool, positioned at the origin.
@@ -91,6 +92,7 @@ namespace Vertx.Utilities
 
 		/// <summary>
 		/// If you are temporarily working with pools for prefabs you can remove them from the system by calling this function.
+		/// This will not remove the instances that are currently pooled. Un-pool all instances before calling this function.
 		/// </summary>
 		/// <param name="prefab">The prefab key referring to the pool.</param>
 		public static void RemovePrefabPool(TInstanceType prefab)
