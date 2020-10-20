@@ -246,9 +246,8 @@ namespace Vertx.Utilities.Editor
 						contentRect.height = height;
 						using (new EditorGUI.PropertyScope(new Rect(position.x, contentRect.y, position.width, contentRect.height), GUIContent.none, value))
 						{
-							float labelRectX = labelRect.x + 15;
-							GUI.Label(new Rect(labelRectX, contentRect.y, contentRect.x - labelRectX - 2, contentRect.height), value.displayName);
-							EditorGUI.PropertyField(contentRect, value, GUIContent.none, false);
+							contentRect.xMin = labelRect.x;
+							EditorGUI.PropertyField(contentRect, value, false);
 						}
 
 						contentRect.y += height + EditorGUIUtility.standardVerticalSpacing;
