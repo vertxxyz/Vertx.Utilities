@@ -10,10 +10,15 @@ namespace Vertx.Utilities
 {
 	public static partial class InstancePool
 	{
-		private const string instancePoolSceneName = "Instance Pool";
+		public const string InstancePoolSceneName = "Instance Pool";
 		private static Scene instancePoolScene;
 
-		private static Scene GetInstancePoolScene()
+		/// <summary>
+		/// Gets the runtime scene InstancePool moves pooled instances to.
+		/// This scene is created if needed.
+		/// </summary>
+		/// <returns>The Scene used by the InstancePool.</returns>
+		public static Scene GetInstancePoolScene()
 		{
 			if (instancePoolScene.IsValid() && instancePoolScene.isLoaded)
 				return instancePoolScene;
@@ -23,13 +28,13 @@ namespace Vertx.Utilities
 
 			Scene GetNewScene()
 			{
-				instancePoolScene = SceneManager.GetSceneByName(instancePoolSceneName);
-				return instancePoolScene.IsValid() ? instancePoolScene : SceneManager.CreateScene(instancePoolSceneName, new CreateSceneParameters(LocalPhysicsMode.None));
+				instancePoolScene = SceneManager.GetSceneByName(InstancePoolSceneName);
+				return instancePoolScene.IsValid() ? instancePoolScene : SceneManager.CreateScene(InstancePoolSceneName, new CreateSceneParameters(LocalPhysicsMode.None));
 			}
 		}
 
 		[RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
-		static void ResetStaticInstances()
+		private static void ResetStaticInstances()
 		{
 			foreach (IComponentPool pool in instancePools)
 				pool.RemoveAllPrefabPools();
