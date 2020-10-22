@@ -478,5 +478,28 @@ namespace Vertx.Utilities.Editor
 					throw new NotSupportedException($"{nameof(SimpleCopyTo)} does not support values of type {destination.propertyType}");
 			}
 		}
+
+		private static Type scriptAttributeUtilityType;
+		private static Type ScriptAttributeUtilityType =>
+			scriptAttributeUtilityType ?? (scriptAttributeUtilityType = typeof(EditorWindow).Assembly.GetType("UnityEditor.ScriptAttributeUtility"));
+
+		private static MethodInfo getHandlerMethod;
+		private static MethodInfo GetHandlerMethod =>
+			getHandlerMethod ?? (getHandlerMethod = ScriptAttributeUtilityType.GetMethod("GetHandler", BindingFlags.NonPublic | BindingFlags.Static));
+		
+		private static Type propertyHandlerType;
+		private static Type PropertyHandlerType =>
+			propertyHandlerType ?? (propertyHandlerType = typeof(EditorWindow).Assembly.GetType("UnityEditor.PropertyHandler"));
+		
+		private static PropertyInfo hasPropertyDrawerProperty;
+		private static PropertyInfo HasPropertyDrawerProperty =>
+			hasPropertyDrawerProperty ?? (hasPropertyDrawerProperty = PropertyHandlerType.GetProperty("hasPropertyDrawer", BindingFlags.Public | BindingFlags.Instance));
+		
+		
+		public static bool HasCustomPropertyDrawer(SerializedProperty property)
+		{
+			var handler = GetHandlerMethod.Invoke(null, new object[] {property});
+			return (bool) HasPropertyDrawerProperty.GetValue(handler);
+		}
 	}
 }

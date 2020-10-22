@@ -1,7 +1,7 @@
 {
   "name": "com.vertx.utilities",
   "displayName": "Utilities",
-  "version": "2.2.2",
+  "version": "2.2.3",
   "unity": "2019.4",
   "description": "General Utilities for Unity.",
   "author": {

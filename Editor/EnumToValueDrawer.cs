@@ -4,8 +4,6 @@ using System.Linq;
 using System.Reflection;
 using UnityEditor;
 using UnityEngine;
-using Vertx.Utilities;
-using Vertx.Utilities.Editor;
 
 namespace Vertx.Utilities.Editor
 {
@@ -17,18 +15,21 @@ namespace Vertx.Utilities.Editor
 		private string[] enumNames;
 		private float[] propertyHeights;
 		private GUIContent[] tooltips;
-		private float totalPropertyHeight;
 		private bool multiLine;
 		private bool dictionary;
 		private bool hidesFirstEnum;
+		private bool hasCustomPropertyDrawer;
+		private GUIStyleState tempStyle;
 
 		bool Initialise(SerializedProperty property)
 		{
 			if (initialised) return true;
 
+			tempStyle = new GUIStyleState();
+
 			hidesFirstEnum = fieldInfo.GetCustomAttribute<HideFirstEnumValue>() != null;
 			Type baseType = fieldInfo.FieldType;
-			
+
 			Type enumToValueType = typeof(EnumToValueBase);
 			Type objectType = typeof(object);
 			while (baseType.BaseType != enumToValueType && baseType.BaseType != objectType)
@@ -108,8 +109,8 @@ namespace Vertx.Utilities.Editor
 					int index = (int) Enum.Parse(enumType, name);
 					if (index > current)
 					{
-						Debug.LogWarning("EnumToValue does not support non-consecutive enum values use an EnumToValueDictionary instead." +
-						                 $"{enumType} in {property.serializedObject.targetObject}");
+						/*Debug.LogWarning("EnumToValue does not support non-consecutive enum values use an EnumToValueDictionary instead." +
+						                 $"{enumType} in {property.serializedObject.targetObject}");*/
 						return false;
 					}
 
@@ -132,43 +133,33 @@ namespace Vertx.Utilities.Editor
 			foreach (KeyValuePair<int, string> valuesToName in valuesToNames)
 				tooltips[j++] = new GUIContent(string.Empty, valuesToName.Key.ToString());
 
-			List<float> heights = new List<float>();
-			totalPropertyHeight = 0;
-
 			property = values.GetArrayElementAtIndex(0);
 			if (property.hasChildren && property.propertyType == SerializedPropertyType.Generic)
-			{
 				multiLine = true;
-				SerializedProperty end = property.GetEndProperty();
-				bool enterChildren = true;
-				while (property.NextVisible(enterChildren) && !SerializedProperty.EqualContents(property, end))
-				{
-					float height = EditorGUI.GetPropertyHeight(property, false);
-					heights.Add(height);
-					totalPropertyHeight += height + EditorGUIUtility.standardVerticalSpacing;
-					enterChildren = false;
-				}
-			}
 			else
-			{
 				multiLine = false;
-				float height = EditorGUI.GetPropertyHeight(property, false);
-				heights.Add(height);
-				totalPropertyHeight = height + EditorGUIUtility.standardVerticalSpacing;
-			}
 
-			propertyHeights = heights.ToArray();
+			propertyHeights = new float[valuesToNames.Count];
 
 			hidesFirstEnumProp.boolValue = hidesFirstEnum;
 			hidesFirstEnumProp.serializedObject.ApplyModifiedPropertiesWithoutUndo();
 
+			hasCustomPropertyDrawer = EditorUtils.HasCustomPropertyDrawer(property);
 			initialised = true;
 			return true;
 		}
 
 		public override void OnGUI(Rect position, SerializedProperty property, GUIContent label)
 		{
-			if (!Initialise(property)) return;
+			if (!Initialise(property))
+			{
+				EditorGUI.HelpBox(
+					position,
+					"EnumToValue does not support non-consecutive enum values! Use an EnumToValueDictionary instead.",
+					MessageType.Error
+				);
+				return;
+			}
 
 			Rect originalPosition = position;
 			position.height = EditorGUIUtility.singleLineHeight;
@@ -185,7 +176,6 @@ namespace Vertx.Utilities.Editor
 							SerializedProperty value = valuesToCollapseOrExpand.GetArrayElementAtIndex(i);
 							value.isExpanded = property.isExpanded;
 						}
-						
 					}
 				}
 			}
@@ -193,11 +183,13 @@ namespace Vertx.Utilities.Editor
 			if (!property.isExpanded)
 				return;
 
+			const float indentSize = 5;
+
 			originalPosition.yMin = position.yMax;
-			originalPosition.xMin += 10;
+			originalPosition.xMin += indentSize - 5;
 			EditorGUIUtils.DrawOutline(originalPosition, 1);
 
-			position.xMin += 15; //Indent
+			position.xMin += indentSize; //Indent
 			position.xMax -= 4;
 			position.y = position.yMax + EditorGUIUtility.standardVerticalSpacing * 2;
 
@@ -214,7 +206,7 @@ namespace Vertx.Utilities.Editor
 				{
 					Rect r = new Rect(position.x - 5, contentRect.y - 2, position.width + 8, contentRect.height + 2);
 					EditorGUI.DrawRect(r, EditorGUIUtils.HeaderColor);
-					
+
 					labelRect.xMin += 12;
 
 					using (new EditorGUI.PropertyScope(r, GUIContent.none, value))
@@ -237,21 +229,33 @@ namespace Vertx.Utilities.Editor
 						continue;
 					}
 
-					SerializedProperty end = value.GetEndProperty();
-					int index = 0;
-					bool enterChildren = true;
-					while (value.NextVisible(enterChildren) && !SerializedProperty.EqualContents(value, end))
+					using (new EditorGUI.PropertyScope(new Rect(position.x, contentRect.y, position.width, contentRect.height), GUIContent.none, value))
 					{
-						float height = propertyHeights[index++];
-						contentRect.height = height;
-						using (new EditorGUI.PropertyScope(new Rect(position.x, contentRect.y, position.width, contentRect.height), GUIContent.none, value))
+						contentRect.xMin = labelRect.x;
+						if (hasCustomPropertyDrawer)
 						{
-							contentRect.xMin = labelRect.x;
-							EditorGUI.PropertyField(contentRect, value, false);
+							EditorGUI.PropertyField(contentRect, value, true);
+							contentRect.y += propertyHeights[i];
+						}
+						else
+						{
+							SerializedProperty end = value.GetEndProperty();
+							bool enterChildren = true;
+							while (value.NextVisible(enterChildren) && !SerializedProperty.EqualContents(value, end))
+							{
+								contentRect.height = EditorGUI.GetPropertyHeight(value, true);
+								using (new EditorGUI.PropertyScope(new Rect(position.x, contentRect.y, position.width, contentRect.height), GUIContent.none, value))
+								{
+									contentRect.xMin = labelRect.x;
+									EditorGUI.PropertyField(contentRect, value, true);
+								}
+
+								contentRect.y = contentRect.yMax + EditorGUIUtility.standardVerticalSpacing;
+								enterChildren = false;
+							}
 						}
 
-						contentRect.y += height + EditorGUIUtility.standardVerticalSpacing;
-						enterChildren = false;
+						contentRect.y += EditorGUIUtility.standardVerticalSpacing;
 					}
 				}
 				else
@@ -269,7 +273,7 @@ namespace Vertx.Utilities.Editor
 					}
 
 					using (new EditorGUI.PropertyScope(new Rect(position.x, contentRect.y, position.width, contentRect.height), GUIContent.none, value))
-						EditorGUI.PropertyField(contentRect, value, GUIContent.none);
+						EditorGUI.PropertyField(contentRect, value, GUIContent.none, true);
 					contentRect.y += propertyHeights[0] + EditorGUIUtility.standardVerticalSpacing;
 					GUI.color = lastColor;
 				}
@@ -280,30 +284,45 @@ namespace Vertx.Utilities.Editor
 
 		public override float GetPropertyHeight(SerializedProperty property, GUIContent label)
 		{
+			float heightWithSpacing = EditorGUIUtils.HeightWithSpacing;
+			float totalHeight = heightWithSpacing;
+			//Only drawing header if not expanded.
 			if (!property.isExpanded)
-				return EditorGUIUtility.singleLineHeight;
-			if (!Initialise(property)) return 0;
-			int length = hidesFirstEnum ? enumNames.Length - 1 : enumNames.Length;
-			int expandedLength = length;
+				return totalHeight;
+
+			//Do not draw this property if it fails to initialise. Instead draw a HelpBox.
+			if (!Initialise(property)) return totalHeight * 2;
+
 			if (multiLine)
 			{
 				SerializedProperty values = property.FindPropertyRelative("values");
 				for (int i = hidesFirstEnum ? 1 : 0; i < enumNames.Length; i++)
 				{
 					SerializedProperty value = values.GetArrayElementAtIndex(i);
-					if (!value.isExpanded) expandedLength--;
+					totalHeight += heightWithSpacing;
+					if (!value.isExpanded)
+						continue;
+
+					value.isExpanded = true;
+					float propertyHeight = EditorGUI.GetPropertyHeight(value, true) + EditorGUIUtility.standardVerticalSpacing;
+					if (!hasCustomPropertyDrawer)
+						propertyHeight -= heightWithSpacing;
+					propertyHeights[i] = propertyHeight;
+					totalHeight += propertyHeight + EditorGUIUtility.standardVerticalSpacing;
 				}
 			}
+			else
+			{
+				//Non-multi-line properties are drawn inline without a dropdown.
+				for (int i = hidesFirstEnum ? 1 : 0; i < enumNames.Length; i++)
+					propertyHeights[i] = EditorGUIUtility.singleLineHeight;
+				
+				totalHeight += (hidesFirstEnum ? enumNames.Length - 1 : enumNames.Length) * heightWithSpacing;
+			}
 
-			return
-				//Heading
-				EditorGUIUtility.singleLineHeight + EditorGUIUtility.standardVerticalSpacing +
-				//Multi-line skip enum heading
-				(multiLine ? (EditorGUIUtility.singleLineHeight + EditorGUIUtility.standardVerticalSpacing) * length : 0) +
-				//Property height
-				totalPropertyHeight * (multiLine ? expandedLength : length)
-				//Padding
-				+ EditorGUIUtility.standardVerticalSpacing * 2;
+			return totalHeight
+			       //Padding
+			       + EditorGUIUtility.standardVerticalSpacing * 2;
 		}
 	}
 }
