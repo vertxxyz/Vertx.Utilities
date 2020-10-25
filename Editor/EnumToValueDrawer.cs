@@ -250,7 +250,7 @@ namespace Vertx.Utilities.Editor
 									EditorGUI.PropertyField(contentRect, value, true);
 								}
 
-								contentRect.y = contentRect.yMax + EditorGUIUtility.standardVerticalSpacing;
+								contentRect.NextGUIRect();
 								enterChildren = false;
 							}
 						}

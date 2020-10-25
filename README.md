@@ -156,12 +156,13 @@ private void Start()
     for (int i = 0; i < proportionalValues.Length; i++)
     {
         int iLocal = i;
-        //Initialise the sliders to their calculated values.
+        // Initialise the sliders to their calculated values.
         sliders[i].SetValueWithoutNotify(proportionalValues[i]);
-        //Subscribe to the get and set callbacks.
-        proportionalValues.OnValueChanged += (index, v) => sliders[index].SetValueWithoutNotify(v);
+        // When a slider changes, set the associated proportional value (this will force a recalculation)
         sliders[i].onValueChanged.AddListener(v => proportionalValues[iLocal] = v);
     }
+    // When the proportional value changes, inform the sliders.
+    proportionalValues.OnValueChanged += (index, v) => sliders[index].SetValueWithoutNotify(v);
 }
 ```
 
@@ -174,6 +175,15 @@ This is not recursive, and only will remove a single instance of the word.
 
 ```cs
 object.TrimName();
+```
+
+#### Rotation
+Helper methods for basic axis-angle rotation operations.
+```cs
+//Rotates a Quaternion in-place via an angle-axis rotation.
+rotation.RotateRef(angle, axisDir, Space.Self);
+//Returns a Quaternion rotated by a angle-axis rotation.
+transform.rotation = rotation.Rotate(angle, axisDir, Space.Self);
 ```
 
 # Editor

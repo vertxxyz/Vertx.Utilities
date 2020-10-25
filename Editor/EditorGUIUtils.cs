@@ -393,6 +393,12 @@ namespace Vertx.Utilities.Editor
 		#region Rect Extensions
 
 		public static void NextGUIRect(this ref Rect rect) => rect.y = rect.yMax + EditorGUIUtility.standardVerticalSpacing;
+		
+		public static Rect GetNextGUIRect(this Rect rect)
+		{
+			rect.y = rect.yMax + EditorGUIUtility.standardVerticalSpacing;
+			return rect;
+		}
 
 		public static void Indent(this ref Rect rect) => rect = EditorGUI.IndentedRect(rect);
 		public static void Indent(this ref Rect rect, float amount) => rect.xMin += amount;
