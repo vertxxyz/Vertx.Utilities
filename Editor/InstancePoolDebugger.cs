@@ -37,18 +37,19 @@ namespace Vertx.Utilities.Editor
 		private IDictionary poolDictionary;
 		private PopupField<string> componentPopup;
 		private readonly List<Component> pooledComponents = new List<Component>();
-		
+
 		private void OnEnable()
 		{
 			EditorApplication.playModeStateChanged += ChangedPlayMode;
-			
+
 			var root = rootVisualElement;
 			//Padding
 			var padding = new VisualElement
 			{
-				style = {marginBottom = 10, marginLeft = 5, marginRight = 5, marginTop = 10}
+				style = {marginBottom = 10, marginLeft = 5, marginRight = 5, marginTop = 10}, name = "Padding"
 			};
 			root.Add(padding);
+			padding.StretchToParentSize();
 			root = padding;
 
 			root.Add(new Label("Instance Pool:") {style = {unityFontStyleAndWeight = FontStyle.Bold}});
@@ -79,6 +80,7 @@ namespace Vertx.Utilities.Editor
 					componentPopup.SetEnabled(false);
 					return;
 				}
+
 				componentPopup.SetEnabled(true);
 				chosenPoolType = evt.newValue;
 			});
@@ -110,11 +112,10 @@ namespace Vertx.Utilities.Editor
 			listView = new ListView(pooledComponents, (int) EditorGUIUtility.singleLineHeight, () =>
 			{
 				VisualElement element = new VisualElement();
-				element.Add(new ObjectField
-				{
-					objectType = typeof(Component),
-					pickingMode = PickingMode.Ignore
-				});
+				var objectField = new ObjectField {objectType = typeof(Component)};
+				element.Add(objectField);
+				objectField.Q(className: ObjectField.selectorUssClassName).style.display = DisplayStyle.None;
+				objectField.RegisterValueChangedCallback(evt => objectField.SetValueWithoutNotify(evt.previousValue));
 				return element;
 			}, (element, i) =>
 			{
@@ -130,7 +131,7 @@ namespace Vertx.Utilities.Editor
 				}
 			};
 			root.Add(listView);
-			
+
 			rootVisualElement.SetEnabled(Application.isPlaying);
 		}
 
@@ -156,7 +157,7 @@ namespace Vertx.Utilities.Editor
 			namesToComponents.Clear();
 			availableComponentNames.Clear();
 			availableComponentNames.Add(noElement);
-				
+
 			IEnumerable componentPools = (IEnumerable) InstancePools.GetValue(null);
 			foreach (object componentPool in componentPools)
 			{
