@@ -219,10 +219,13 @@ namespace Vertx.Utilities
 						hashSet.Remove(poppedInstance);
 						
 						// Activate and re-parent
-						poppedInstance.gameObject.SetActive(true);
+						GameObject poppedInstanceGameObject = poppedInstance.gameObject;
+						poppedInstanceGameObject.SetActive(true);
 						Transform t = poppedInstance.transform;
 						if (t.parent != parent)
 							t.SetParent(parent);
+						else
+							SceneManager.MoveGameObjectToScene(poppedInstanceGameObject, SceneManager.GetActiveScene());
 
 						//Position
 						switch (space)
