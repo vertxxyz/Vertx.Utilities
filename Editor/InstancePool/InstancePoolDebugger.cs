@@ -107,6 +107,16 @@ namespace Vertx.Utilities.Editor
 			});
 			componentPopup.SetEnabled(false);
 			root.Add(componentPopup);
+			
+#if UNITY_2020_1_OR_NEWER
+			HelpBox container = new HelpBox("Data is not refreshed in realtime.", HelpBoxMessageType.Warning);
+#else
+			IMGUIContainer container = new IMGUIContainer(() =>
+			{
+				EditorGUILayout.HelpBox("Data is not refreshed in realtime.", MessageType.Warning);
+			});
+#endif
+			root.Add(container);
 
 			//List View
 			listView = new ListView(pooledComponents, (int) EditorGUIUtility.singleLineHeight, () =>
