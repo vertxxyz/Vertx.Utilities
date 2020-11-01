@@ -142,6 +142,21 @@ public class DataDescriptionExample : EnumDataDescription<DataDescriptionExample
 }
 ```
 
+## PooledListView
+
+A vertical ScrollView that contains fixed-height elements that are pooled.  
+Navigation is automatically set within the list's contents.
+
+```cs
+// Binds a list to the ListView
+public void Bind(IList elements)
+// A UnityEvent to bind UI items with list item content
+// int index, RectTransform root
+public BindEvent BindItem
+// Call to regenerate content when the bound list changes
+public void Refresh()
+```
+
 ## ProportionalValues
 
 **Helper class for managing multiple values so they always total the same amount.**  

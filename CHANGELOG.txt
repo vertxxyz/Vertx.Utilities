@@ -4,6 +4,11 @@ All notable changes to this package will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
+## [2.3.0] - 2020-11-02
+ - Added PooledListView.
+ - Added Instance Pool Debugger.
+ - Changed Instance Pool to move unpooled objects to the active scene when a parent is not specified.
+
 ## [2.2.4] - 2020-10-25
  - Added RotationUtils, providing Rotate and RotateRef extensions to Quaternion.
  - Added rect.GetNextGUIRect, alternate version of NextGUIRect which returns a new rect.
