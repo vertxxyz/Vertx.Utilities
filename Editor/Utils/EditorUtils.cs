@@ -20,28 +20,38 @@ namespace Vertx.Utilities.Editor
 		{
 			if (!TryGetGUIDs(out var guids, type, query))
 				return null;
+			Object anyCandidate = null;
 			foreach (string guid in guids)
 			{
-				var asset = AssetDatabase.LoadAssetAtPath<Object>(AssetDatabase.GUIDToAssetPath(guid));
-				if (asset != null && type.IsInstanceOfType(asset))
-					return asset;
+				var candidate = AssetDatabase.LoadAssetAtPath<Object>(AssetDatabase.GUIDToAssetPath(guid));
+				if (candidate == null || !type.IsInstanceOfType(candidate))
+					continue;
+				//Prioritise candidates that have the exact name that is queried for.
+				if (candidate.name == query)
+					return candidate;
+				anyCandidate = candidate;
 			}
 
-			return null;
+			return anyCandidate;
 		}
 
 		public static T LoadAssetOfType<T>(string query = null) where T : Object
 		{
 			if (!TryGetGUIDs(out var guids, typeof(T), query))
 				return null;
+			T anyCandidate = null;
 			foreach (string guid in guids)
 			{
-				var asset = AssetDatabase.LoadAssetAtPath<T>(AssetDatabase.GUIDToAssetPath(guid));
-				if (asset != null)
-					return asset;
+				var candidate = AssetDatabase.LoadAssetAtPath<T>(AssetDatabase.GUIDToAssetPath(guid));
+				if (candidate == null)
+					continue;
+				//Prioritise candidates that have the exact name that is queried for.
+				if (candidate.name == query)
+					return candidate;
+				anyCandidate = candidate;
 			}
 
-			return null;
+			return anyCandidate;
 		}
 
 		public static T[] LoadAssetsOfType<T>(string query = null) where T : Object
