@@ -19,14 +19,11 @@ namespace Vertx.Utilities.Editor
 		private bool dictionary;
 		private bool hidesFirstEnum;
 		private bool hasCustomPropertyDrawer;
-		private GUIStyleState tempStyle;
 
 		bool Initialise(SerializedProperty property)
 		{
 			if (initialised) return true;
-
-			tempStyle = new GUIStyleState();
-
+			
 			hidesFirstEnum = fieldInfo.GetCustomAttribute<HideFirstEnumValue>() != null;
 			Type baseType = fieldInfo.FieldType;
 

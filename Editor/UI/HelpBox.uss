@@ -1,0 +1,32 @@
+.helpBox {
+	background-color: rgba(255, 255, 255, 0.15);
+	font-size: 10px;
+	-unity-text-align: middle-left;
+	flex-direction: row;
+	height: 35px;
+	border-width: 1px;
+	border-radius: 5px;
+	border-color: rgb(130, 130, 130);
+	margin-bottom: 4px;
+}
+
+.consoleInfo {
+	align-self: center;
+	height: 32px;
+	width: 32px;
+	background-image: resource("console.infoicon");
+}
+
+.consoleWarning {
+	align-self: center;
+	height: 32px;
+	width: 32px;
+	background-image: resource("console.warnicon");
+}
+
+.consoleError {
+	align-self: center;
+	height: 32px;
+	width: 32px;
+	background-image: resource("console.erroricon");
+}
