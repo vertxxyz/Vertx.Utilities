@@ -30,6 +30,33 @@ namespace Vertx.Utilities
 		private LayoutElement startPaddingElement, endPaddingElement;
 		private IList list;
 
+		[SerializeField] private Selectable selectOnUp, selectOnDown, selectOnLeft, selectOnRight;
+
+		public Selectable SelectOnUp
+		{
+			get => selectOnUp;
+			set => selectOnUp = value;
+		}
+		
+		public Selectable SelectOnDown
+		{
+			get => selectOnDown;
+			set => selectOnDown = value;
+		}
+		
+		public Selectable SelectOnLeft
+		{
+			get => selectOnLeft;
+			set => selectOnLeft = value;
+		}
+		
+		public Selectable SelectOnRight
+		{
+			get => selectOnRight;
+			set => selectOnRight = value;
+		}
+
+
 		protected override void Start()
 		{
 			base.Start();
@@ -87,7 +114,10 @@ namespace Vertx.Utilities
 			if (list == null || list.Count == 0)
 				return;
 
-			Position(verticalScrollbar.value);
+			var scrollbar = verticalScrollbar;
+			float value = scrollbar == null ? 0 : scrollbar.value;
+
+			Position(value);
 		}
 
 		private readonly List<int> toRemove = new List<int>();
@@ -127,9 +157,13 @@ namespace Vertx.Utilities
 			{
 				if (pair.Key >= zeroIndexInUse && pair.Key < endIndexInt)
 					continue;
-
+				
 				toRemove.Add(pair.Key);
-				InstancePool.Pool(prefab, pair.Value);
+				// You love to see it
+				if (!CanvasUpdateRegistry.IsRebuildingLayout())
+					InstancePool.Pool(prefab, pair.Value);
+				else
+					StartCoroutine(PoolWithDelay(pair.Value));
 			}
 
 			foreach (int i in toRemove)
@@ -151,10 +185,15 @@ namespace Vertx.Utilities
 				//Automatic navigation setup
 				if (!instance.TryGetComponent<Selectable>(out var next))
 					continue;
+				
 				next.navigation = new Navigation
 				{
 					mode = Navigation.Mode.Explicit,
-					selectOnUp = prev
+					selectOnUp = i == 0 ? selectOnUp : prev,
+					selectOnLeft = selectOnLeft,
+					selectOnRight = selectOnRight,
+					//This is okay to assign here as it should be overridden when appropriate
+					selectOnDown = i == elementCount - 1 ? selectOnDown : null
 				};
 				if (prev != null)
 				{
@@ -175,6 +214,12 @@ namespace Vertx.Utilities
 			float endPadding = totalElementHeight - (startPadding + c * elementHeight);
 			endPaddingElement.preferredHeight = endPadding;
 			((RectTransform) endPaddingElement.transform).SetSizeWithCurrentAnchors(RectTransform.Axis.Vertical, endPadding);
+		}
+
+		IEnumerator PoolWithDelay(RectTransform value)
+		{
+			yield return new WaitForEndOfFrame();
+			InstancePool.Pool(prefab, value);
 		}
 	}
 }

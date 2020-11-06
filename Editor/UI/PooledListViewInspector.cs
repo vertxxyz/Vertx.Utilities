@@ -46,6 +46,11 @@ namespace Vertx.Utilities.Editor
 				}
 			});
 			root.Add(new PropertyField(serializedObject.FindProperty("elementHeight")));
+			
+			root.Add(IndentedProperty(serializedObject.FindProperty("selectOnUp"), "Select On Up"));
+			root.Add(IndentedProperty(serializedObject.FindProperty("selectOnDown"), "Select On Down"));
+			root.Add(IndentedProperty(serializedObject.FindProperty("selectOnLeft"), "Select On Left"));
+			root.Add(IndentedProperty(serializedObject.FindProperty("selectOnRight"), "Select On Right"));
 
 			root.Add(new PropertyField(serializedObject.FindProperty("m_OnValueChanged"))
 			{
