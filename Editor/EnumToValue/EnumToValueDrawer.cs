@@ -271,7 +271,7 @@ namespace Vertx.Utilities.Editor
 
 					using (new EditorGUI.PropertyScope(new Rect(position.x, contentRect.y, position.width, contentRect.height), GUIContent.none, value))
 						EditorGUI.PropertyField(contentRect, value, GUIContent.none, true);
-					contentRect.y += propertyHeights[0] + EditorGUIUtility.standardVerticalSpacing;
+					contentRect.y += propertyHeights[i] + EditorGUIUtility.standardVerticalSpacing;
 					GUI.color = lastColor;
 				}
 

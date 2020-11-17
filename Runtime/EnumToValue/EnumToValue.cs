@@ -16,6 +16,13 @@ namespace Vertx.Utilities
 
 	public class HideFirstEnumValue : Attribute { }
 
+	
+	/// <summary>
+	/// A helper class to associate enum values to data, and display that appropriately in the inspector
+	/// If your enum values are not consecutive, please use <see cref="EnumToValueDictionary{T,TValue}"/>.
+	/// </summary>
+	/// <typeparam name="T">The enum key</typeparam>
+	/// <typeparam name="TValue">The data to associate with enum values</typeparam>
 	[Serializable]
 	public class EnumToValue<T, TValue> : EnumToValueBase, IEnumerable<(T key, TValue value)>
 		where T : Enum
@@ -80,6 +87,11 @@ namespace Vertx.Utilities
 		IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
 	}
 
+	/// <summary>
+	/// A helper class to associate enum values to data, and display that appropriately in the inspector
+	/// </summary>
+	/// <typeparam name="T">The enum key</typeparam>
+	/// <typeparam name="TValue">The data to associate with enum values</typeparam>
 	[Serializable]
 	public class EnumToValueDictionary<T, TValue> :
 		EnumToValueBase, IEnumerable<(T key, TValue value)>,
