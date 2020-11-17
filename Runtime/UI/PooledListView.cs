@@ -56,10 +56,12 @@ namespace Vertx.Utilities
 			set => selectOnRight = value;
 		}
 
-
 		protected override void Start()
 		{
 			base.Start();
+
+			if (!Application.IsPlaying(this))
+				return;
 
 			if (verticalScrollbar != null)
 			{
@@ -83,6 +85,12 @@ namespace Vertx.Utilities
 
 		public void Bind(IList elements)
 		{
+			if (!Application.IsPlaying(this))
+			{
+				Debug.LogWarning($"{nameof(Bind)} should not be called in Edit Mode");
+				return;
+			}
+
 			list = elements;
 			Refresh();
 		}
@@ -101,6 +109,12 @@ namespace Vertx.Utilities
 
 		public void Refresh()
 		{
+			if (!Application.IsPlaying(this))
+			{
+				Debug.LogWarning($"{nameof(Refresh)} should not be called in Edit Mode");
+				return;
+			}
+			
 			if (startPaddingElement == null)
 			{
 				startPaddingElement = new GameObject("Start Padding", typeof(RectTransform), typeof(LayoutElement)).GetComponent<LayoutElement>();

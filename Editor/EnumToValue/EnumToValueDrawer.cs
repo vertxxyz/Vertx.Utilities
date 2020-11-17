@@ -23,7 +23,7 @@ namespace Vertx.Utilities.Editor
 		bool Initialise(SerializedProperty property)
 		{
 			if (initialised) return true;
-			
+
 			hidesFirstEnum = fieldInfo.GetCustomAttribute<HideFirstEnumValue>() != null;
 			Type baseType = fieldInfo.FieldType;
 
@@ -36,112 +36,68 @@ namespace Vertx.Utilities.Editor
 			Type enumType = genericArguments[0];
 
 			string[] names = Enum.GetNames(enumType);
-			Array enumValues = Enum.GetValues(enumType);
 
 			Dictionary<int, string> valuesToNames = new Dictionary<int, string>();
 
 			dictionary = baseType.GetGenericTypeDefinition() == typeof(EnumToValueDictionary<,>);
 
-			SerializedProperty values = property.FindPropertyRelative("values");
 			SerializedProperty hidesFirstEnumProp = property.FindPropertyRelative("hidesFirstEnum");
+
+			//Remove any enum names that have duplicate indices.
+			int current = 0;
+			foreach (string name in names)
+			{
+				int index = (int) Enum.Parse(enumType, name);
+				if (!dictionary)
+				{
+					if (index > current)
+					{
+						//non-consecutive enum values for non-enum dictionary fails.
+						return false;
+					}
+				}
+
+				if (valuesToNames.ContainsKey(index))
+				{
+					valuesToNames[index] = $"{valuesToNames[index]}/{name}";
+					continue;
+				}
+
+				valuesToNames.Add(index, name);
+				current++;
+			}
+
+			enumNames = valuesToNames.Values.ToArray();
 
 			if (dictionary)
 			{
-				//Remove any enum names that have duplicate indices.
-				for (int i = 0; i < names.Length; i++)
+				SerializedProperty data = property.FindPropertyRelative("data");
+				if (data != null)
 				{
-					int value = (int) enumValues.GetValue(i);
-					string name = names[i];
-					if (valuesToNames.ContainsKey(value))
-						valuesToNames[value] = $"{valuesToNames[value]}/{name}";
-					else
-						valuesToNames.Add(value, name);
+					data.arraySize = enumNames.Length;
+					property = data.GetArrayElementAtIndex(0).FindPropertyRelative("Value");
 				}
-
-				enumNames = valuesToNames.Values.ToArray();
-				SerializedProperty keys = property.FindPropertyRelative("keys");
-
-				//Get the values currently stored on the object and make sure they're set to the correct indices in the resized list.
-				FieldInfo valuesField = baseType.GetField("values", BindingFlags.Instance | BindingFlags.NonPublic);
-				FieldInfo keysField = baseType.GetField("keys", BindingFlags.Instance | BindingFlags.NonPublic);
-
-				//Collect former values
-				var dictionaryOldValues = new Dictionary<int, object>();
-				object parent = EditorUtils.GetObjectFromProperty(property, out _, out _);
-				Array valuesArray = (Array) valuesField.GetValue(parent);
-				for (int i = 0; i < keys.arraySize; i++)
-				{
-					int key = keys.GetArrayElementAtIndex(i).intValue;
-					if (dictionaryOldValues.ContainsKey(key)) continue;
-					dictionaryOldValues.Add(key, valuesArray.GetValue(i));
-				}
-
-				//Resize the arrays
-				int length = valuesToNames.Count;
-				keys.arraySize = length;
-				values.arraySize = length;
-				property.serializedObject.ApplyModifiedPropertiesWithoutUndo();
-
-				//Apply the old dictionary values to the new arrays.
-				Array valuesArrayFinal = (Array) valuesField.GetValue(parent);
-				Array keysArrayFinal = (Array) keysField.GetValue(parent);
-				int index = 0;
-				foreach (KeyValuePair<int, string> valueToName in valuesToNames)
-				{
-					keysArrayFinal.SetValue(valueToName.Key, index);
-					if (dictionaryOldValues.TryGetValue(valueToName.Key, out var @object))
-						valuesArrayFinal.SetValue(@object, index);
-					index++;
-				}
-
-				EditorUtility.SetDirty(property.serializedObject.targetObject);
-				property.serializedObject.Update();
 			}
 			else
 			{
-				//Remove any enum names that have duplicate indices.
-				int current = 0;
-				foreach (string name in names)
-				{
-					int index = (int) Enum.Parse(enumType, name);
-					if (index > current)
-					{
-						/*Debug.LogWarning("EnumToValue does not support non-consecutive enum values use an EnumToValueDictionary instead." +
-						                 $"{enumType} in {property.serializedObject.targetObject}");*/
-						return false;
-					}
-
-					if (valuesToNames.ContainsKey(index))
-					{
-						valuesToNames[index] = $"{valuesToNames[index]}/{name}";
-						continue;
-					}
-
-					valuesToNames.Add(index, name);
-					current++;
-				}
-
-				enumNames = valuesToNames.Values.ToArray();
+				SerializedProperty values = property.FindPropertyRelative("values");
 				values.arraySize = enumNames.Length;
+				property = values.GetArrayElementAtIndex(0);
 			}
+
+			multiLine = property.hasChildren && property.propertyType == SerializedPropertyType.Generic;
+			hasCustomPropertyDrawer = EditorUtils.HasCustomPropertyDrawer(property);
 
 			tooltips = new GUIContent[valuesToNames.Count];
 			int j = 0;
 			foreach (KeyValuePair<int, string> valuesToName in valuesToNames)
 				tooltips[j++] = new GUIContent(string.Empty, valuesToName.Key.ToString());
 
-			property = values.GetArrayElementAtIndex(0);
-			if (property.hasChildren && property.propertyType == SerializedPropertyType.Generic)
-				multiLine = true;
-			else
-				multiLine = false;
-
 			propertyHeights = new float[valuesToNames.Count];
 
 			hidesFirstEnumProp.boolValue = hidesFirstEnum;
 			hidesFirstEnumProp.serializedObject.ApplyModifiedPropertiesWithoutUndo();
 
-			hasCustomPropertyDrawer = EditorUtils.HasCustomPropertyDrawer(property);
 			initialised = true;
 			return true;
 		}
@@ -190,13 +146,13 @@ namespace Vertx.Utilities.Editor
 			position.xMax -= 4;
 			position.y = position.yMax + EditorGUIUtility.standardVerticalSpacing * 2;
 
-			SerializedProperty values = property.FindPropertyRelative("values");
+			SerializedProperty values = property.FindPropertyRelative(dictionary ? "data" : "values");
 			values.arraySize = enumNames.Length;
 			float contentX = position.x + EditorGUIUtility.labelWidth;
 			float contentWidth = position.width - EditorGUIUtility.labelWidth;
 			for (int i = hidesFirstEnum ? 1 : 0; i < enumNames.Length; i++)
 			{
-				SerializedProperty value = values.GetArrayElementAtIndex(i);
+				SerializedProperty value = dictionary ? values.GetArrayElementAtIndex(i).FindPropertyRelative("Value") : values.GetArrayElementAtIndex(i);
 				Rect labelRect = new Rect(position.x, position.y, EditorGUIUtility.labelWidth - 4, position.height);
 				Rect contentRect = new Rect(contentX, position.y, contentWidth, position.height);
 				if (multiLine)
@@ -292,15 +248,15 @@ namespace Vertx.Utilities.Editor
 
 			if (multiLine)
 			{
-				SerializedProperty values = property.FindPropertyRelative("values");
+				SerializedProperty data = dictionary ? property.FindPropertyRelative("data") : property.FindPropertyRelative("values");
 				for (int i = hidesFirstEnum ? 1 : 0; i < enumNames.Length; i++)
 				{
-					SerializedProperty value = values.GetArrayElementAtIndex(i);
+					var dataKeyValue = data.GetArrayElementAtIndex(i);
+					var value = dictionary ? data.GetArrayElementAtIndex(i).FindPropertyRelative("Value") : data.GetArrayElementAtIndex(i);
 					totalHeight += heightWithSpacing;
-					if (!value.isExpanded)
+					if (!dataKeyValue.isExpanded)
 						continue;
 
-					value.isExpanded = true;
 					float propertyHeight = EditorGUI.GetPropertyHeight(value, true) + EditorGUIUtility.standardVerticalSpacing;
 					if (!hasCustomPropertyDrawer)
 						propertyHeight -= heightWithSpacing;
@@ -313,7 +269,7 @@ namespace Vertx.Utilities.Editor
 				//Non-multi-line properties are drawn inline without a dropdown.
 				for (int i = hidesFirstEnum ? 1 : 0; i < enumNames.Length; i++)
 					propertyHeights[i] = EditorGUIUtility.singleLineHeight;
-				
+
 				totalHeight += (hidesFirstEnum ? enumNames.Length - 1 : enumNames.Length) * heightWithSpacing;
 			}
 
