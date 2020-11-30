@@ -59,12 +59,14 @@ namespace Vertx.Utilities.Editor
 			public AdvancedDropdownWithCallacks(
 				AdvancedDropdownState state,
 				string title,
+				Vector2 minimumSize,
 				List<AdvancedDropdownElement> elements,
 				Action<AdvancedDropdownElement> onSelected,
 				Func<AdvancedDropdownElement, bool> validateEnabled = null
 			) : base(state)
 			{
 				this.onSelected = onSelected;
+				this.minimumSize = minimumSize;
 				//Create lookup and build root
 				(lookup, root) = GetStructure(elements, title, validateEnabled);
 			}
@@ -142,7 +144,8 @@ namespace Vertx.Utilities.Editor
 		public static AdvancedDropdown CreateAdvancedDropdownFromAttribute<T>(
 			string title,
 			Action<AdvancedDropdownElement> onSelected,
-			Func<AdvancedDropdownElement, bool> validateEnabled = null
+			Func<AdvancedDropdownElement, bool> validateEnabled = null,
+			Vector2 minimumSize = default
 		) where T : AdvancedDropdownAttribute
 		{
 			//Generate elements
@@ -151,14 +154,15 @@ namespace Vertx.Utilities.Editor
 			foreach (Type type in types)
 				elements.Add(new AdvancedDropdownElement(type.GetCustomAttribute<AdvancedDropdownAttribute>(), type));
 
-			return new AdvancedDropdownWithCallacks(new AdvancedDropdownState(), title, elements, onSelected, validateEnabled);
+			return new AdvancedDropdownWithCallacks(new AdvancedDropdownState(), title, minimumSize, elements, onSelected, validateEnabled);
 		}
 		
 		public static AdvancedDropdown CreateAdvancedDropdownFromType<T>(
 			string title,
 			Action<AdvancedDropdownElement> onSelected,
 			Func<AdvancedDropdownElement, bool> validateEnabled = null,
-			bool excludeAbstractTypes = true
+			bool excludeAbstractTypes = true,
+			Vector2 minimumSize = default
 		)
 		{
 			//Generate elements
@@ -228,7 +232,7 @@ namespace Vertx.Utilities.Editor
 				}
 			}
 
-			return new AdvancedDropdownWithCallacks(new AdvancedDropdownState(), title, elements, onSelected, validateEnabled);
+			return new AdvancedDropdownWithCallacks(new AdvancedDropdownState(), title, minimumSize, elements, onSelected, validateEnabled);
 		}
 
 		public static (Dictionary<int, T>, AdvancedDropdownItem) GetStructure<T>(IEnumerable<T> items, string rootName, Func<T, bool> validateEnabled = null)
