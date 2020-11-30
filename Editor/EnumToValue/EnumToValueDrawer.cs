@@ -69,7 +69,7 @@ namespace Vertx.Utilities.Editor
 
 			enumNames = valuesToNames.Values.ToArray();
 
-			if (dictionary)
+			/*if (dictionary)
 			{
 				SerializedProperty data = property.FindPropertyRelative("data");
 				if (data != null)
@@ -79,11 +79,11 @@ namespace Vertx.Utilities.Editor
 				}
 			}
 			else
-			{
+			{*/
 				SerializedProperty values = property.FindPropertyRelative("values");
 				values.arraySize = enumNames.Length;
 				property = values.GetArrayElementAtIndex(0);
-			}
+			//}
 
 			multiLine = property.hasChildren && property.propertyType == SerializedPropertyType.Generic;
 			hasCustomPropertyDrawer = EditorUtils.HasCustomPropertyDrawer(property);
@@ -146,13 +146,13 @@ namespace Vertx.Utilities.Editor
 			position.xMax -= 4;
 			position.y = position.yMax + EditorGUIUtility.standardVerticalSpacing * 2;
 
-			SerializedProperty values = property.FindPropertyRelative(dictionary ? "data" : "values");
+			SerializedProperty values = property.FindPropertyRelative(/*dictionary ? "data" : */"values");
 			values.arraySize = enumNames.Length;
 			float contentX = position.x + EditorGUIUtility.labelWidth;
 			float contentWidth = position.width - EditorGUIUtility.labelWidth;
 			for (int i = hidesFirstEnum ? 1 : 0; i < enumNames.Length; i++)
 			{
-				SerializedProperty value = dictionary ? values.GetArrayElementAtIndex(i).FindPropertyRelative("Value") : values.GetArrayElementAtIndex(i);
+				SerializedProperty value = /*dictionary ? values.GetArrayElementAtIndex(i).FindPropertyRelative("Value") : */values.GetArrayElementAtIndex(i);
 				Rect labelRect = new Rect(position.x, position.y, EditorGUIUtility.labelWidth - 4, position.height);
 				Rect contentRect = new Rect(contentX, position.y, contentWidth, position.height);
 				if (multiLine)
@@ -248,11 +248,11 @@ namespace Vertx.Utilities.Editor
 
 			if (multiLine)
 			{
-				SerializedProperty data = dictionary ? property.FindPropertyRelative("data") : property.FindPropertyRelative("values");
+				SerializedProperty data = /*dictionary ? property.FindPropertyRelative("data") : */property.FindPropertyRelative("values");
 				for (int i = hidesFirstEnum ? 1 : 0; i < enumNames.Length; i++)
 				{
 					var dataKeyValue = data.GetArrayElementAtIndex(i);
-					var value = dictionary ? data.GetArrayElementAtIndex(i).FindPropertyRelative("Value") : data.GetArrayElementAtIndex(i);
+					var value = /*dictionary ? data.GetArrayElementAtIndex(i).FindPropertyRelative("Value") : */data.GetArrayElementAtIndex(i);
 					totalHeight += heightWithSpacing;
 					if (!dataKeyValue.isExpanded)
 						continue;

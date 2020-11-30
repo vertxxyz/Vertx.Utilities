@@ -56,10 +56,9 @@ namespace Vertx.Utilities
 			set => selectOnRight = value;
 		}
 
-		protected override void Start()
+		protected override void OnEnable()
 		{
-			base.Start();
-
+			base.OnEnable();
 			if (!Application.IsPlaying(this))
 				return;
 
