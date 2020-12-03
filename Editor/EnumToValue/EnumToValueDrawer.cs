@@ -69,21 +69,20 @@ namespace Vertx.Utilities.Editor
 
 			enumNames = valuesToNames.Values.ToArray();
 
-			/*if (dictionary)
+			SerializedProperty values = property.FindPropertyRelative("values");
+			values.arraySize = enumNames.Length;
+
+			if (dictionary)
 			{
-				SerializedProperty data = property.FindPropertyRelative("data");
-				if (data != null)
-				{
-					data.arraySize = enumNames.Length;
-					property = data.GetArrayElementAtIndex(0).FindPropertyRelative("Value");
-				}
+				SerializedProperty keys = property.FindPropertyRelative("keys");
+				keys.arraySize = enumNames.Length;
+				var ks = valuesToNames.Keys;
+				int i = 0;
+				foreach (int k in ks)
+					keys.GetArrayElementAtIndex(i++).intValue = k;
 			}
-			else
-			{*/
-				SerializedProperty values = property.FindPropertyRelative("values");
-				values.arraySize = enumNames.Length;
-				property = values.GetArrayElementAtIndex(0);
-			//}
+			
+			property = values.GetArrayElementAtIndex(0);
 
 			multiLine = property.hasChildren && property.propertyType == SerializedPropertyType.Generic;
 			hasCustomPropertyDrawer = EditorUtils.HasCustomPropertyDrawer(property);
