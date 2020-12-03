@@ -233,7 +233,7 @@ namespace Vertx.Utilities.Editor
 			{
 				sceneManagerSetup = EditorSceneManager.GetSceneManagerSetup();
 				buildSceneCount = EditorBuildSettings.scenes.Length;
-				currentScene = default;
+				Current = default;
 				progressIncrement = 1 / (float) buildSceneCount;
 			}
 
@@ -246,28 +246,26 @@ namespace Vertx.Utilities.Editor
 
 			private readonly float progressIncrement;
 
-			public void DisplayProgressBar(string title, string info, float localProgress)
-				=> EditorUtility.DisplayProgressBar(title, info, (buildIndex + localProgress * progressIncrement) / buildSceneCount);
+			public void DisplayProgressBar(string title, string info, float localProgress = 0)
+				=> EditorUtility.DisplayProgressBar(title, info, (BuildIndex + localProgress * progressIncrement) / buildSceneCount);
 
 			private readonly int buildSceneCount;
-			private int buildIndex = -1;
-			private Scene currentScene;
 
 			public bool MoveNext()
 			{
 				//Avoids going beyond the end of the collection.
-				if (++buildIndex >= buildSceneCount)
+				if (++BuildIndex >= buildSceneCount)
 					return false;
 
-				string path = EditorBuildSettings.scenes[buildIndex].path;
-				EditorSceneManager.OpenScene(path, buildIndex == 0 ? OpenSceneMode.Single : OpenSceneMode.Additive);
-				currentScene = SceneManager.GetSceneByBuildIndex(buildIndex);
+				string path = EditorBuildSettings.scenes[BuildIndex].path;
+				Current = EditorSceneManager.OpenScene(path, BuildIndex == 0 ? OpenSceneMode.Single : OpenSceneMode.Additive);
 				return true;
 			}
 
-			public void Reset() => buildIndex = -1;
+			public void Reset() => BuildIndex = -1;
 
-			public Scene Current => currentScene;
+			public Scene Current { get; private set; }
+			public int BuildIndex { get; private set; } = -1;
 
 			object IEnumerator.Current => Current;
 			public IEnumerator<Scene> GetEnumerator() => this;
