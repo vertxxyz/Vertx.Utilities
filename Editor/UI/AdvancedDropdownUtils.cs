@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Reflection;
 using System.Text;
 using UnityEditor;
@@ -11,7 +12,7 @@ namespace Vertx.Utilities.Editor
 	public interface IAdvancedDropdownItem
 	{
 		string Name { get; }
-		
+
 		/// <summary>
 		/// Paths do not contain the name. eg. "Folder/Sub Folder"
 		/// </summary>
@@ -42,10 +43,11 @@ namespace Vertx.Utilities.Editor
 
 	public static class AdvancedDropdownUtils
 	{
-		private class AdvancedDropdownWithCallacks : AdvancedDropdown
+		private class AdvancedDropdownWithCallbacks<T> : AdvancedDropdown
+			where T : IAdvancedDropdownItem
 		{
-			private readonly Dictionary<int, AdvancedDropdownElement> lookup;
-			private readonly Action<AdvancedDropdownElement> onSelected;
+			private readonly Dictionary<int, T> lookup;
+			private readonly Action<T> onSelected;
 			private readonly AdvancedDropdownItem root;
 
 			protected override AdvancedDropdownItem BuildRoot() => root;
@@ -56,13 +58,13 @@ namespace Vertx.Utilities.Editor
 					onSelected?.Invoke(value);
 			}
 
-			public AdvancedDropdownWithCallacks(
+			public AdvancedDropdownWithCallbacks(
 				AdvancedDropdownState state,
 				string title,
 				Vector2 minimumSize,
-				List<AdvancedDropdownElement> elements,
-				Action<AdvancedDropdownElement> onSelected,
-				Func<AdvancedDropdownElement, bool> validateEnabled = null
+				List<T> elements,
+				Action<T> onSelected,
+				Func<T, bool> validateEnabled = null
 			) : base(state)
 			{
 				this.onSelected = onSelected;
@@ -70,6 +72,13 @@ namespace Vertx.Utilities.Editor
 				//Create lookup and build root
 				(lookup, root) = GetStructure(elements, title, validateEnabled);
 			}
+		}
+
+		private class AdvancedDropdownWithCallbacks : AdvancedDropdownWithCallbacks<AdvancedDropdownElement>
+		{
+			public AdvancedDropdownWithCallbacks(AdvancedDropdownState state, string title, Vector2 minimumSize, List<AdvancedDropdownElement> elements,
+				Action<AdvancedDropdownElement> onSelected, Func<AdvancedDropdownElement, bool> validateEnabled = null)
+				: base(state, title, minimumSize, elements, onSelected, validateEnabled) { }
 		}
 
 		private class AdvancedDropdownElement<T>
@@ -141,10 +150,30 @@ namespace Vertx.Utilities.Editor
 
 		private static readonly char[] separators = {'/', '\\'};
 
+		public static AdvancedDropdown CreateAdvancedDropdownFromAttribute<T, TItem>(
+			string title,
+			Action<TItem> onSelected,
+			Func<Type, IEnumerable<TItem>> remap,
+			Func<TItem, bool> validateEnabled = null,
+			Vector2 minimumSize = default
+		)
+			where T : Attribute
+			where TItem : IAdvancedDropdownItem
+		{
+			//Generate elements
+			var types = TypeCache.GetTypesWithAttribute<T>();
+			List<TItem> elements = types.SelectMany(remap).ToList();
+
+			return new AdvancedDropdownWithCallbacks<TItem>(
+				new AdvancedDropdownState(), title, minimumSize, elements, onSelected, validateEnabled
+			);
+		}
+
 		public static AdvancedDropdown CreateAdvancedDropdownFromAttribute<T>(
 			string title,
 			Action<AdvancedDropdownElement> onSelected,
 			Func<AdvancedDropdownElement, bool> validateEnabled = null,
+			Func<Type, bool> validateType = null,
 			Vector2 minimumSize = default
 		) where T : AdvancedDropdownAttribute
 		{
@@ -152,15 +181,20 @@ namespace Vertx.Utilities.Editor
 			var types = TypeCache.GetTypesWithAttribute<T>();
 			List<AdvancedDropdownElement> elements = new List<AdvancedDropdownElement>();
 			foreach (Type type in types)
+			{
+				if (!(validateType?.Invoke(type) ?? true))
+					continue;
 				elements.Add(new AdvancedDropdownElement(type.GetCustomAttribute<AdvancedDropdownAttribute>(), type));
+			}
 
-			return new AdvancedDropdownWithCallacks(new AdvancedDropdownState(), title, minimumSize, elements, onSelected, validateEnabled);
+			return new AdvancedDropdownWithCallbacks(new AdvancedDropdownState(), title, minimumSize, elements, onSelected, validateEnabled);
 		}
-		
+
 		public static AdvancedDropdown CreateAdvancedDropdownFromType<T>(
 			string title,
 			Action<AdvancedDropdownElement> onSelected,
 			Func<AdvancedDropdownElement, bool> validateEnabled = null,
+			Func<Type, bool> validateType = null,
 			bool excludeAbstractTypes = true,
 			Vector2 minimumSize = default
 		)
@@ -174,7 +208,10 @@ namespace Vertx.Utilities.Editor
 				var attribute = type.GetCustomAttribute<AdvancedDropdownAttribute>();
 				if (excludeAbstractTypes && type.IsAbstract)
 					continue;
-				
+
+				if (!(validateType?.Invoke(type) ?? true))
+					continue;
+
 				elements.Add(attribute != null
 					? new AdvancedDropdownElement(attribute, type)
 					: new AdvancedDropdownElement(type.Name, ObjectNames.NicifyVariableName(CodeUtils.GenerateTypeNamePath(type, stringBuilder, true, false)), type));
@@ -183,7 +220,7 @@ namespace Vertx.Utilities.Editor
 			if (elements.Count > 0)
 			{
 				//==== Remove shared root from all paths ====
-				
+
 				//Calculate shared root
 				int sharedStartingCharacter = -1;
 				while (true)
@@ -211,13 +248,13 @@ namespace Vertx.Utilities.Editor
 						//Continue checking if char is the same
 						if (element.Path[check] == sharedChar)
 							continue;
-						
+
 						//Fail if char is not the same.
 						checkFailed = true;
 						break;
 					}
 
-					if(checkFailed)
+					if (checkFailed)
 						break;
 					sharedStartingCharacter++;
 				}
@@ -232,7 +269,9 @@ namespace Vertx.Utilities.Editor
 				}
 			}
 
-			return new AdvancedDropdownWithCallacks(new AdvancedDropdownState(), title, minimumSize, elements, onSelected, validateEnabled);
+			return new AdvancedDropdownWithCallbacks(
+				new AdvancedDropdownState(), title, minimumSize, elements, onSelected, validateEnabled
+			);
 		}
 
 		public static (Dictionary<int, T>, AdvancedDropdownItem) GetStructure<T>(IEnumerable<T> items, string rootName, Func<T, bool> validateEnabled = null)
