@@ -38,6 +38,16 @@ namespace Vertx.Utilities.Editor
 
 			Debug.Log(stringBuilder);
 		}
+		
+		public static void LogAllProperties(this SerializedProperty property)
+		{
+			StringBuilder stringBuilder = new StringBuilder(property.propertyPath);
+			stringBuilder.AppendLine(":");
+			SerializedProperty rootProp = property.Copy();
+			AppendProperty(stringBuilder, rootProp, rootProp.GetEndProperty(true), property.propertyPath.Length, 1);
+			Debug.Log(stringBuilder);
+		}
+
 
 		private const int safetySerializationDepth = 10;
 

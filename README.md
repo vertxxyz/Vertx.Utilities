@@ -7,6 +7,7 @@ General Utilities for Unity
 - [Runtime](#Runtime)
     - [InstancePool](#InstancePool)
     - [EnumToValue](#EnumToValue)
+    - [PooledListView](#PooledListView)
     - [ProportionalValues](#ProportionalValues)
     - [Misc](#Misc)
 - [Editor](#Editor)

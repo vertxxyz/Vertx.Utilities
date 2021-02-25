@@ -13,7 +13,7 @@ namespace Vertx.Utilities
 		where T : EnumToValueBase
 	{
 		[FormerlySerializedAs("Data")]
-		[SerializeField] private T data;
+		[SerializeField] private T data = default;
 		public T Data => data;
 	}
 }
