@@ -335,7 +335,10 @@ namespace Vertx.Utilities.Editor
 
 			void AddChildren(AdvancedDropdownItem toTarget, AdvancedDropdownElement<T> toGather, Dictionary<int, T> localLookup)
 			{
-				foreach (KeyValuePair<string, AdvancedDropdownElement<T>> children in toGather.Children)
+				var childrenSource = toGather.Children;
+				if (childrenSource == null)
+					return;
+				foreach (KeyValuePair<string, AdvancedDropdownElement<T>> children in childrenSource)
 				{
 					AdvancedDropdownElement<T> element = children.Value;
 					if (TryAddEndChild(element))
