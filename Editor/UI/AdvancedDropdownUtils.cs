@@ -43,7 +43,7 @@ namespace Vertx.Utilities.Editor
 
 	public static class AdvancedDropdownUtils
 	{
-		private class AdvancedDropdownWithCallbacks<T> : AdvancedDropdown
+		public class AdvancedDropdownWithCallbacks<T> : AdvancedDropdown
 			where T : IAdvancedDropdownItem
 		{
 			private readonly Dictionary<int, T> lookup;
@@ -74,7 +74,7 @@ namespace Vertx.Utilities.Editor
 			}
 		}
 
-		private class AdvancedDropdownWithCallbacks : AdvancedDropdownWithCallbacks<AdvancedDropdownElement>
+		public class AdvancedDropdownWithCallbacks : AdvancedDropdownWithCallbacks<AdvancedDropdownElement>
 		{
 			public AdvancedDropdownWithCallbacks(AdvancedDropdownState state, string title, Vector2 minimumSize, List<AdvancedDropdownElement> elements,
 				Action<AdvancedDropdownElement> onSelected, Func<AdvancedDropdownElement, bool> validateEnabled = null)
@@ -190,7 +190,8 @@ namespace Vertx.Utilities.Editor
 			return new AdvancedDropdownWithCallbacks(new AdvancedDropdownState(), title, minimumSize, elements, onSelected, validateEnabled);
 		}
 
-		public static AdvancedDropdown CreateAdvancedDropdownFromType<T>(
+		public static AdvancedDropdown CreateAdvancedDropdownFromType(
+			Type typeQuery,
 			string title,
 			Action<AdvancedDropdownElement> onSelected,
 			Func<AdvancedDropdownElement, bool> validateEnabled = null,
@@ -200,7 +201,7 @@ namespace Vertx.Utilities.Editor
 		)
 		{
 			//Generate elements
-			var types = TypeCache.GetTypesDerivedFrom<T>();
+			var types = TypeCache.GetTypesDerivedFrom(typeQuery);
 			StringBuilder stringBuilder = new StringBuilder();
 			List<AdvancedDropdownElement> elements = new List<AdvancedDropdownElement>();
 			foreach (Type type in types)
@@ -274,6 +275,15 @@ namespace Vertx.Utilities.Editor
 			);
 		}
 
+		public static AdvancedDropdown CreateAdvancedDropdownFromType<T>(
+			string title,
+			Action<AdvancedDropdownElement> onSelected,
+			Func<AdvancedDropdownElement, bool> validateEnabled = null,
+			Func<Type, bool> validateType = null,
+			bool excludeAbstractTypes = true,
+			Vector2 minimumSize = default
+		) => CreateAdvancedDropdownFromType(typeof(T), title, onSelected, validateEnabled, validateType, excludeAbstractTypes, minimumSize);
+
 		public static (Dictionary<int, T>, AdvancedDropdownItem) GetStructure<T>(IEnumerable<T> items, string rootName, Func<T, bool> validateEnabled = null)
 			where T : IAdvancedDropdownItem
 		{
@@ -325,7 +335,10 @@ namespace Vertx.Utilities.Editor
 
 			void AddChildren(AdvancedDropdownItem toTarget, AdvancedDropdownElement<T> toGather, Dictionary<int, T> localLookup)
 			{
-				foreach (KeyValuePair<string, AdvancedDropdownElement<T>> children in toGather.Children)
+				var childrenSource = toGather.Children;
+				if (childrenSource == null)
+					return;
+				foreach (KeyValuePair<string, AdvancedDropdownElement<T>> children in childrenSource)
 				{
 					AdvancedDropdownElement<T> element = children.Value;
 					if (TryAddEndChild(element))

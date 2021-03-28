@@ -15,16 +15,16 @@ namespace Vertx.Utilities
 			Snapped
 		}
 
-		[SerializeField] private Snapping snapping;
+		[SerializeField] private Snapping snapping = default;
 		
-		[SerializeField] private RectTransform prefab;
+		[SerializeField] private RectTransform prefab = default;
 		[Min(0)]
-		[SerializeField] private float elementHeight;
+		[SerializeField] private float elementHeight = default;
 
 		[System.Serializable]
 		public class BindEvent : UnityEvent<int, RectTransform> { }
 
-		[SerializeField] private BindEvent bindItem;
+		[SerializeField] private BindEvent bindItem = default;
 		public BindEvent BindItem => bindItem;
 
 		private LayoutElement startPaddingElement, endPaddingElement;
