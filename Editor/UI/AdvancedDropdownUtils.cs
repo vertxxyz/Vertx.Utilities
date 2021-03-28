@@ -176,9 +176,19 @@ namespace Vertx.Utilities.Editor
 			Func<Type, bool> validateType = null,
 			Vector2 minimumSize = default
 		) where T : AdvancedDropdownAttribute
+		 => CreateAdvancedDropdownFromAttribute(typeof(T), title, onSelected, validateEnabled, validateType, minimumSize);
+		
+		public static AdvancedDropdown CreateAdvancedDropdownFromAttribute(
+			Type dropdownAttributeType,
+			string title,
+			Action<AdvancedDropdownElement> onSelected,
+			Func<AdvancedDropdownElement, bool> validateEnabled = null,
+			Func<Type, bool> validateType = null,
+			Vector2 minimumSize = default
+		)
 		{
 			//Generate elements
-			var types = TypeCache.GetTypesWithAttribute<T>();
+			var types = TypeCache.GetTypesWithAttribute(dropdownAttributeType);
 			List<AdvancedDropdownElement> elements = new List<AdvancedDropdownElement>();
 			foreach (Type type in types)
 			{
