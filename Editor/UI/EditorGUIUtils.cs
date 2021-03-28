@@ -342,6 +342,14 @@ namespace Vertx.Utilities.Editor
 			rect.Indent(5);
 			GUI.Label(rect, label);
 		}
+		
+		public static void DrawHeaderWithBackground(Rect position, GUIContent label)
+		{
+			if (Event.current.type == EventType.Repaint)
+				HeaderBackground.Draw(position, GUIContent.none, 0);
+			position.Indent(5);
+			GUI.Label(position, label);
+		}
 
 		public class ContainerScope : IDisposable
 		{
@@ -358,8 +366,7 @@ namespace Vertx.Utilities.Editor
 				Rect rect = scope.rect;
 				rect.yMin -= 2;
 
-				if (Event.current.type == EventType.Repaint)
-					BoxBackground.Draw(rect, GUIContent.none, 0);
+				DrawBoxBackground(rect);
 			}
 
 			public void Dispose()
@@ -368,6 +375,12 @@ namespace Vertx.Utilities.Editor
 				scope.Dispose();
 				GUILayout.Space(bottomMargin);
 			}
+		}
+		
+		public static void DrawBoxBackground (Rect rect)
+		{
+			if (Event.current.type == EventType.Repaint)
+				BoxBackground.Draw(rect, GUIContent.none, 0);
 		}
 
 		public static void DrawOutline(Rect rect, float size)
