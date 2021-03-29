@@ -240,6 +240,8 @@ Many helper functions for random editor functionality I use, often or otherwise.
     - `GetPathForObject`  
       Returns an appropriate full path to the object. This includes the scene if relevant.
 - Serialized Properties
+    - `FindBackingProperty`  
+      Finds a backing property by name. Ie. a field serialized with `[field: SerializeField]` or `[field: SerializeReference]`.
     - `GetIndexFromArrayProperty`  
       Gets the array index associated with a property via string manipulation.
     - `LogAllProperties`  

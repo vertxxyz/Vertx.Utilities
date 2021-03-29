@@ -48,6 +48,7 @@ namespace Vertx.Utilities.Editor
 			Debug.Log(stringBuilder);
 		}
 
+		public static SerializedProperty FindBackingProperty(this SerializedProperty property, string propertyName) => property.FindPropertyRelative($"<{propertyName}>k__BackingField");
 
 		private const int safetySerializationDepth = 10;
 
