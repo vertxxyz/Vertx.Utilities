@@ -25,9 +25,9 @@ namespace Vertx.Utilities.Editor
 			return true;
 		} 
 		
-		public static bool SaveAndWriteFileDialog(string fileName, string content, string extension = "cs")
+		public static bool SaveAndWriteFileDialog(string fileName, string content, string extension = "cs", string title = "Save Remapped Template")
 		{
-			string path = EditorUtility.SaveFilePanel("Save Remapped Template", Application.dataPath, fileName, extension);
+			string path = EditorUtility.SaveFilePanel(title, Application.dataPath, fileName, extension);
 			if (string.IsNullOrEmpty(path))
 				return false;
 
