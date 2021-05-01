@@ -145,7 +145,19 @@ namespace Vertx.Utilities.Editor
 		}
 
 		private static readonly Dictionary<string, (Type, FieldInfo)> baseTypeLookup = new Dictionary<string, (Type, FieldInfo)>();
+		private static object[] fieldInfoArray;
 
+		public static FieldInfo GetFieldInfoFromProperty(SerializedProperty property, out Type type)
+		{
+			if (fieldInfoArray == null)
+				fieldInfoArray = new object[2];
+			fieldInfoArray[0] = property;
+			fieldInfoArray[1] = null;
+			FieldInfo fieldInfo = (FieldInfo) GetFieldInfoFromPropertyMethod.Invoke(null, fieldInfoArray);
+			type = (Type) fieldInfoArray[1];
+			return fieldInfo;
+		}
+		
 		/// <summary>
 		/// Gets the backing object from a serialized property.
 		/// </summary>
@@ -497,6 +509,10 @@ namespace Vertx.Utilities.Editor
 		private static MethodInfo getHandlerMethod;
 		private static MethodInfo GetHandlerMethod =>
 			getHandlerMethod ?? (getHandlerMethod = ScriptAttributeUtilityType.GetMethod("GetHandler", BindingFlags.NonPublic | BindingFlags.Static));
+		
+		private static MethodInfo getFieldInfoFromPropertyMethod;
+		private static MethodInfo GetFieldInfoFromPropertyMethod =>
+			getFieldInfoFromPropertyMethod ?? (getFieldInfoFromPropertyMethod = ScriptAttributeUtilityType.GetMethod("GetFieldInfoFromProperty", BindingFlags.NonPublic | BindingFlags.Static));
 		
 		private static Type propertyHandlerType;
 		private static Type PropertyHandlerType =>

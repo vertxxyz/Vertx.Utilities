@@ -73,6 +73,7 @@ namespace Vertx.Utilities.Editor
 				{
 					int key = keys.GetArrayElementAtIndex(i).intValue;
 					if (dictionaryOldValues.ContainsKey(key)) continue;
+					if(i >= valuesArray.Length) continue;
 					dictionaryOldValues.Add(key, valuesArray.GetValue(i));
 				}
 
