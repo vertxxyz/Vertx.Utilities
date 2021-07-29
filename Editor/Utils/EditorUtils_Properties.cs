@@ -38,7 +38,7 @@ namespace Vertx.Utilities.Editor
 
 			Debug.Log(stringBuilder);
 		}
-		
+
 		public static void LogAllProperties(this SerializedProperty property)
 		{
 			StringBuilder stringBuilder = new StringBuilder(property.propertyPath);
@@ -48,7 +48,8 @@ namespace Vertx.Utilities.Editor
 			Debug.Log(stringBuilder);
 		}
 
-		public static SerializedProperty FindBackingProperty(this SerializedProperty property, string propertyName) => property.FindPropertyRelative($"<{propertyName}>k__BackingField");
+		public static SerializedProperty FindBackingProperty(this SerializedProperty property, string propertyName) =>
+			property.FindPropertyRelative($"<{propertyName}>k__BackingField");
 
 		private const int safetySerializationDepth = 10;
 
@@ -153,11 +154,11 @@ namespace Vertx.Utilities.Editor
 				fieldInfoArray = new object[2];
 			fieldInfoArray[0] = property;
 			fieldInfoArray[1] = null;
-			FieldInfo fieldInfo = (FieldInfo) GetFieldInfoFromPropertyMethod.Invoke(null, fieldInfoArray);
-			type = (Type) fieldInfoArray[1];
+			FieldInfo fieldInfo = (FieldInfo)GetFieldInfoFromPropertyMethod.Invoke(null, fieldInfoArray);
+			type = (Type)fieldInfoArray[1];
 			return fieldInfo;
 		}
-		
+
 		/// <summary>
 		/// Gets the backing object from a serialized property.
 		/// </summary>
@@ -212,14 +213,14 @@ namespace Vertx.Utilities.Editor
 					if (index >= 0)
 					{
 						parent = @object;
-						@object = ((Array) @object).GetValue(index);
+						@object = ((Array)@object).GetValue(index);
 					}
 					else if (prop.propertyPath.EndsWith("Array.size"))
 					{
 						if (@object == null)
 							return 0;
 						parent = @object;
-						@object = ((Array) @object).Length;
+						@object = ((Array)@object).Length;
 						return @object;
 					}
 					else
@@ -232,14 +233,14 @@ namespace Vertx.Utilities.Editor
 					if (index >= 0)
 					{
 						parent = @object;
-						@object = ((IList) @object)[index];
+						@object = ((IList)@object)[index];
 					}
 					else if (prop.propertyPath.EndsWith("Array.size"))
 					{
 						if (@object == null)
 							return 0;
 						parent = @object;
-						@object = ((IList) @object).Count;
+						@object = ((IList)@object).Count;
 						return @object;
 					}
 					else
@@ -251,7 +252,7 @@ namespace Vertx.Utilities.Editor
 
 			return @object;
 		}
-		
+
 		public static object GetPropertyValue(this SerializedProperty property)
 		{
 			switch (property.propertyType)
@@ -387,7 +388,7 @@ namespace Vertx.Utilities.Editor
 					return property.ToString();
 			}
 		}
-		
+
 		private static Gradient GetGradientValue(SerializedProperty property)
 		{
 			PropertyInfo propertyInfo = typeof(SerializedProperty).GetProperty(
@@ -400,7 +401,7 @@ namespace Vertx.Utilities.Editor
 			);
 			return propertyInfo?.GetValue(property, null) as Gradient;
 		}
-		
+
 		public static void SimpleCopyTo(this SerializedProperty origin, SerializedProperty destination)
 		{
 			if (origin.propertyType != destination.propertyType)
@@ -420,6 +421,7 @@ namespace Vertx.Utilities.Editor
 					SerializedProperty iDestination = destination.GetArrayElementAtIndex(i);
 					iOrigin.SimpleCopyTo(iDestination);
 				}
+
 				return;
 			}
 
@@ -491,15 +493,28 @@ namespace Vertx.Utilities.Editor
 				case SerializedPropertyType.ExposedReference:
 					destination.exposedReferenceValue = origin.exposedReferenceValue;
 					break;
-				#if UNITY_2019_3_OR_NEWER
+#if UNITY_2019_3_OR_NEWER
 				case SerializedPropertyType.ManagedReference:
-				#endif
+#endif
 				case SerializedPropertyType.FixedBufferSize:
 				case SerializedPropertyType.Gradient:
 				case SerializedPropertyType.Generic:
 				default:
 					throw new NotSupportedException($"{nameof(SimpleCopyTo)} does not support values of type {destination.propertyType}");
 			}
+		}
+
+		public static void ReverseArray(this SerializedProperty property)
+		{
+			if (!property.isArray)
+			{
+				Debug.LogError($"{property} is not an array.");
+				return;
+			}
+
+			int c = property.arraySize;
+			for (int end = c - 1; end > 0; end--)
+				property.MoveArrayElement(0, end);
 		}
 
 		private static Type scriptAttributeUtilityType;
@@ -509,24 +524,25 @@ namespace Vertx.Utilities.Editor
 		private static MethodInfo getHandlerMethod;
 		private static MethodInfo GetHandlerMethod =>
 			getHandlerMethod ?? (getHandlerMethod = ScriptAttributeUtilityType.GetMethod("GetHandler", BindingFlags.NonPublic | BindingFlags.Static));
-		
+
 		private static MethodInfo getFieldInfoFromPropertyMethod;
 		private static MethodInfo GetFieldInfoFromPropertyMethod =>
-			getFieldInfoFromPropertyMethod ?? (getFieldInfoFromPropertyMethod = ScriptAttributeUtilityType.GetMethod("GetFieldInfoFromProperty", BindingFlags.NonPublic | BindingFlags.Static));
-		
+			getFieldInfoFromPropertyMethod ?? (getFieldInfoFromPropertyMethod =
+				ScriptAttributeUtilityType.GetMethod("GetFieldInfoFromProperty", BindingFlags.NonPublic | BindingFlags.Static));
+
 		private static Type propertyHandlerType;
 		private static Type PropertyHandlerType =>
 			propertyHandlerType ?? (propertyHandlerType = typeof(EditorWindow).Assembly.GetType("UnityEditor.PropertyHandler"));
-		
+
 		private static PropertyInfo hasPropertyDrawerProperty;
 		private static PropertyInfo HasPropertyDrawerProperty =>
 			hasPropertyDrawerProperty ?? (hasPropertyDrawerProperty = PropertyHandlerType.GetProperty("hasPropertyDrawer", BindingFlags.Public | BindingFlags.Instance));
-		
-		
+
+
 		public static bool HasCustomPropertyDrawer(SerializedProperty property)
 		{
-			var handler = GetHandlerMethod.Invoke(null, new object[] {property});
-			return (bool) HasPropertyDrawerProperty.GetValue(handler);
+			var handler = GetHandlerMethod.Invoke(null, new object[] { property });
+			return (bool)HasPropertyDrawerProperty.GetValue(handler);
 		}
 	}
 }
