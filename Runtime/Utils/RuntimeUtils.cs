@@ -15,7 +15,7 @@ namespace Vertx.Utilities
 		public static void TrimName(this Object @object, string trimmedText = cloneText)
 		{
 			string name = @object.name;
-			if(name.EndsWith(trimmedText))
+			if (name.EndsWith(trimmedText))
 				@object.name = name.Substring(0, name.Length - trimmedText.Length);
 		}
 	}

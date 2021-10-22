@@ -51,13 +51,13 @@ namespace Vertx.Utilities.Editor
 			switch (searchAssets)
 			{
 				case SearchFilter.All:
-					searchDirs = new[] {"Assets", "Packages"};
+					searchDirs = new[] { "Assets", "Packages" };
 					break;
 				case SearchFilter.Assets:
-					searchDirs = new[] {"Assets"};
+					searchDirs = new[] { "Assets" };
 					break;
 				case SearchFilter.Packages:
-					searchDirs = new[] {"Packages"};
+					searchDirs = new[] { "Packages" };
 					break;
 				default:
 					throw new ArgumentOutOfRangeException(nameof(searchAssets), searchAssets, null);

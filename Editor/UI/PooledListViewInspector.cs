@@ -46,7 +46,7 @@ namespace Vertx.Utilities.Editor
 				}
 			});
 			root.Add(new PropertyField(serializedObject.FindProperty("elementHeight")));
-			
+
 			root.Add(IndentedProperty(serializedObject.FindProperty("selectOnUp"), "Select On Up"));
 			root.Add(IndentedProperty(serializedObject.FindProperty("selectOnDown"), "Select On Down"));
 			root.Add(IndentedProperty(serializedObject.FindProperty("selectOnLeft"), "Select On Left"));
@@ -67,12 +67,12 @@ namespace Vertx.Utilities.Editor
 		private static PropertyField IndentedProperty(SerializedProperty property, string label)
 		{
 			var pF = new PropertyField(property, label);
-			pF.RegisterCallback<GeometryChangedEvent>(evt =>
+			pF.RegisterCallback<GeometryChangedEvent, PropertyField>((_, field) =>
 			{
-				var l = pF.Q<Label>();
+				var l = field.Q<Label>();
 				l.style.marginLeft = 16;
 				l.style.marginRight = -16;
-			});
+			}, pF);
 			return pF;
 		}
 
@@ -81,7 +81,7 @@ namespace Vertx.Utilities.Editor
 		{
 			var menuOptionsType = Type.GetType("UnityEditor.UI.MenuOptions,UnityEditor.UI");
 			MethodInfo addScrollViewMethod = menuOptionsType.GetMethod("AddScrollView", BindingFlags.Public | BindingFlags.Static);
-			addScrollViewMethod.Invoke(null, new object[] {new MenuCommand(Selection.activeObject)});
+			addScrollViewMethod.Invoke(null, new object[] { new MenuCommand(Selection.activeObject) });
 			//The created GameObject is set to the current selection, so we can retrieve it via there.
 			GameObject scrollView = Selection.activeGameObject;
 
@@ -95,13 +95,13 @@ namespace Vertx.Utilities.Editor
 
 				//Remove the horizontal scroll bar
 				var horizontalScrollbar = sO.FindProperty("m_HorizontalScrollbar");
-				var scrollBar = (Scrollbar) horizontalScrollbar.objectReferenceValue;
+				var scrollBar = (Scrollbar)horizontalScrollbar.objectReferenceValue;
 				DestroyImmediate(scrollBar.gameObject, true);
 				horizontalScrollbar.objectReferenceValue = null;
 
 				//Fix the scroll bar so that it takes up the total vertical space of the viewport.
-				var verticalScrollbar = (Scrollbar) sO.FindProperty("m_VerticalScrollbar").objectReferenceValue;
-				((RectTransform) verticalScrollbar.transform).offsetMin = new Vector2(-20, 0);
+				var verticalScrollbar = (Scrollbar)sO.FindProperty("m_VerticalScrollbar").objectReferenceValue;
+				((RectTransform)verticalScrollbar.transform).offsetMin = new Vector2(-20, 0);
 
 				sO.ApplyModifiedPropertiesWithoutUndo();
 			}

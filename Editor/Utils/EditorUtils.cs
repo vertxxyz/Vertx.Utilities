@@ -93,13 +93,13 @@ namespace Vertx.Utilities.Editor
 				ProjectBrowserType.GetMethod("ShowFolderContents", BindingFlags.NonPublic | BindingFlags.Instance);
 			EditorWindow browser = EditorWindow.GetWindow(ProjectBrowserType);
 			if (browser != null)
-				showContentsMethod.Invoke(browser, new object[] {folderInstanceId, revealAndFrameInFolderTree});
+				showContentsMethod.Invoke(browser, new object[] { folderInstanceId, revealAndFrameInFolderTree });
 		}
 
 		public static int GetMainAssetInstanceID(string path)
 		{
-			object idObject = typeof(AssetDatabase).GetMethod("GetMainAssetInstanceID", BindingFlags.NonPublic | BindingFlags.Static)?.Invoke(null, new object[] {path});
-			if (idObject != null) return (int) idObject;
+			object idObject = typeof(AssetDatabase).GetMethod("GetMainAssetInstanceID", BindingFlags.NonPublic | BindingFlags.Static)?.Invoke(null, new object[] { path });
+			if (idObject != null) return (int)idObject;
 			return -1;
 		}
 
@@ -139,12 +139,12 @@ namespace Vertx.Utilities.Editor
 
 		private static MethodInfo projectBrowserSetSearch;
 		private static MethodInfo ProjectBrowserSetSearch
-			=> projectBrowserSetSearch ?? (projectBrowserSetSearch = ProjectBrowserType.GetMethod("SetSearch", new[] {typeof(string)}));
+			=> projectBrowserSetSearch ?? (projectBrowserSetSearch = ProjectBrowserType.GetMethod("SetSearch", new[] { typeof(string) }));
 
 		public static void SetProjectBrowserSearch(string search)
 		{
 			EditorWindow window = GetProjectBrowserWindow(true);
-			ProjectBrowserSetSearch.Invoke(window, new object[] {search});
+			ProjectBrowserSetSearch.Invoke(window, new object[] { search });
 		}
 
 		private static Type projectBrowserType;
@@ -176,7 +176,7 @@ namespace Vertx.Utilities.Editor
 		{
 			EditorWindow window = GetSceneViewHierarchyWindow();
 			if (window == null) return;
-			HierarchyWindowSetSearch.Invoke(window, new object[] {search, 0, false, false});
+			HierarchyWindowSetSearch.Invoke(window, new object[] { search, 0, false, false });
 		}
 
 		private static Type hierarchyWindowType;
@@ -206,7 +206,7 @@ namespace Vertx.Utilities.Editor
 		public static List<T> GetEditorExtensionsOfType<T>()
 		{
 			IEnumerable<Type> derivedTypes = TypeCache.GetTypesDerivedFrom<T>();
-			return derivedTypes.Select(t => (T) Activator.CreateInstance(t)).ToList();
+			return derivedTypes.Select(t => (T)Activator.CreateInstance(t)).ToList();
 		}
 
 		/// <summary>
@@ -218,7 +218,7 @@ namespace Vertx.Utilities.Editor
 		public static List<TConverted> GetEditorExtensionsOfType<TConverted>(Type type)
 		{
 			IEnumerable<Type> derivedTypes = TypeCache.GetTypesDerivedFrom(type);
-			return derivedTypes.Select(t => (TConverted) Activator.CreateInstance(t)).ToList();
+			return derivedTypes.Select(t => (TConverted)Activator.CreateInstance(t)).ToList();
 		}
 
 		#endregion
@@ -234,7 +234,7 @@ namespace Vertx.Utilities.Editor
 				sceneManagerSetup = EditorSceneManager.GetSceneManagerSetup();
 				buildSceneCount = EditorBuildSettings.scenes.Length;
 				Current = default;
-				progressIncrement = 1 / (float) buildSceneCount;
+				progressIncrement = 1 / (float)buildSceneCount;
 			}
 
 			public void Dispose()

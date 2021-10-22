@@ -4,6 +4,16 @@ All notable changes to this package will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
+## [3.0.0] - 2021-10-22
+ - Upgraded version requirement to 2020.1. 2020.3 has been
+ - Added support for 2021.2+
+ - Removed RotationUtils
+ - EnumToValue
+    - Removed EnumToValueDictionary, EnumToValue now handles all enum configurations
+    - Ported data structures to a key value pair configuration. If you have issues with this, revert changes and switch to 2.4.5.
+    - Fixed issues with multiple EnumToValues on the same object (or nested).
+ - Added Icon to IAdvancedDropdownItem
+ 
 ## [2.4.5] - 2021-07-29
  - Added SerializedProperty.ReverseArray
 

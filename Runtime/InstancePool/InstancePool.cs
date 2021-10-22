@@ -22,7 +22,7 @@ namespace Vertx.Utilities
 		{
 			if (instancePoolScene.IsValid() && instancePoolScene.isLoaded)
 				return instancePoolScene;
-			
+
 			instancePoolScene = GetNewScene();
 			return instancePoolScene;
 
@@ -52,7 +52,7 @@ namespace Vertx.Utilities
 			foreach (IComponentPool pool in instancePools)
 				pool.TrimExcess(defaultCapacity);
 		}
-		
+
 		/// <summary>
 		/// Moves a GameObject instance to the Instance Pool scene. This will not pool the object.
 		/// </summary>
@@ -69,7 +69,7 @@ namespace Vertx.Utilities
 			SceneManager.MoveGameObjectToScene(instance, GetInstancePoolScene());
 		}
 	}
-	
+
 	internal interface IComponentPool
 	{
 		void TrimExcess(int defaultCapacity);
@@ -144,6 +144,7 @@ namespace Vertx.Utilities
 					InstancePool.MoveToInstancePoolScene(instance);
 					hashSet.Add(instance);
 				}
+
 				yield return null;
 			}
 		}
@@ -217,7 +218,7 @@ namespace Vertx.Utilities
 					if (found)
 					{
 						hashSet.Remove(poppedInstance);
-						
+
 						// Activate and re-parent
 						GameObject poppedInstanceGameObject = poppedInstance.gameObject;
 						poppedInstanceGameObject.SetActive(true);
@@ -286,7 +287,7 @@ namespace Vertx.Utilities
 		{
 			Assert.IsNotNull(prefab, $"Prefab passed to InstancePool<{typeof(TInstanceType).Name}>{nameof(Pool)} was null");
 			Assert.IsNotNull(instance, $"Instance passed to InstancePool<{typeof(TInstanceType).Name}>{nameof(Pool)} was null");
-			
+
 			// Create a pool if we don't have one already.
 			if (!pool.TryGetValue(prefab, out var hashSet))
 			{
@@ -298,9 +299,9 @@ namespace Vertx.Utilities
 			{
 				if (hashSet.Contains(instance))
 				{
-					#if UNITY_EDITOR
+#if UNITY_EDITOR
 					Debug.LogWarning($"Item {instance} is requested to be pooled for a second time. The request has been ignored.");
-					#endif
+#endif
 				}
 				else
 				{
@@ -332,14 +333,14 @@ namespace Vertx.Utilities
 				pool.Remove(prefab);
 		}
 
-		
+
 		void IComponentPool.RemoveAllPrefabPools()
 		{
 			pool.Clear();
 		}
 
 		#region Capacity
-		
+
 		private readonly Dictionary<TInstanceType, int> capacities = new Dictionary<TInstanceType, int>();
 
 		/// <summary>
@@ -357,7 +358,7 @@ namespace Vertx.Utilities
 		/// </summary>
 		/// <param name="prefab">The prefab used as a key within the pool.</param>
 		/// <param name="capacity">The maximum amount of instances kept when <see cref="TrimExcess"/> is called.</param>
-		public void SetCapacity(TInstanceType prefab, int capacity) 
+		public void SetCapacity(TInstanceType prefab, int capacity)
 			=> capacities[prefab] = capacity;
 
 		/// <summary>
@@ -372,10 +373,10 @@ namespace Vertx.Utilities
 			{
 				if (!capacities.TryGetValue(pair.Key, out int capacity))
 					capacity = defaultCapacity;
-				
+
 				HashSet<TInstanceType> instances = pair.Value;
-				if(instances.Count <= capacity) continue;
-				
+				if (instances.Count <= capacity) continue;
+
 				temp.Clear();
 				int c = 0;
 				foreach (var instance in instances)
@@ -385,6 +386,7 @@ namespace Vertx.Utilities
 					else
 						Object.Destroy(instance.gameObject);
 				}
+
 				instances.IntersectWith(temp);
 			}
 		}
@@ -399,12 +401,12 @@ namespace Vertx.Utilities
 		{
 			if (!pool.TryGetValue(prefab, out var instances))
 				return;
-			
+
 			if (!capacities.TryGetValue(prefab, out int capacity))
 				capacity = defaultCapacity;
-			
-			if(instances.Count <= capacity) return;
-			
+
+			if (instances.Count <= capacity) return;
+
 			HashSet<TInstanceType> temp = new HashSet<TInstanceType>();
 			int c = 0;
 			foreach (var instance in instances)
@@ -414,6 +416,7 @@ namespace Vertx.Utilities
 				else
 					Object.Destroy(instance.gameObject);
 			}
+
 			instances.IntersectWith(temp);
 		}
 

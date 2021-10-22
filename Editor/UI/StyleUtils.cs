@@ -9,10 +9,10 @@ namespace Vertx.Utilities.Editor
 
 		private static StyleSheet vertxStyleSheetShared;
 		private static StyleSheet VertxStyleSheetShared => vertxStyleSheetShared == null ? vertxStyleSheetShared = GetStyleSheet("VertxStyleShared") : vertxStyleSheetShared;
-		
+
 		private static StyleSheet vertxStyleSheetLight;
 		private static StyleSheet VertxStyleSheetLight => vertxStyleSheetLight == null ? vertxStyleSheetLight = GetStyleSheet("VertxStyleLight") : vertxStyleSheetLight;
-		
+
 		private static StyleSheet vertxStyleSheetDark;
 		private static StyleSheet VertxStyleSheetDark => vertxStyleSheetDark == null ? vertxStyleSheetDark = GetStyleSheet("VertxStyle") : vertxStyleSheetDark;
 

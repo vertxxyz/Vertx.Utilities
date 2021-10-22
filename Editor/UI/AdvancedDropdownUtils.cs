@@ -17,27 +17,32 @@ namespace Vertx.Utilities.Editor
 		/// Paths do not contain the name. eg. "Folder/Sub Folder"
 		/// </summary>
 		string Path { get; }
+		
+		Texture2D Icon { get; }
 	}
 
 	public readonly struct AdvancedDropdownElement : IAdvancedDropdownItem
 	{
 		public string Name { get; }
 		public string Path { get; }
+		public Texture2D Icon { get; }
 
 		public Type Type { get; }
 
-		public AdvancedDropdownElement(string name, string path, Type type = null)
+		public AdvancedDropdownElement(string name, string path, Type type = null, Texture2D icon = null)
 		{
 			Name = name;
 			Path = path;
 			Type = type;
+			Icon = icon;
 		}
 
-		public AdvancedDropdownElement(AdvancedDropdownAttribute attribute, Type type)
+		public AdvancedDropdownElement(AdvancedDropdownAttribute attribute, Type type, Texture2D icon = null)
 		{
 			Name = attribute.Name;
 			Path = attribute.Path;
 			Type = type;
+			Icon = icon;
 		}
 	}
 
@@ -86,20 +91,23 @@ namespace Vertx.Utilities.Editor
 		{
 			public string Name { get; }
 			public bool IsItem { get; }
+			public Texture2D Icon { get; }
 			public T Item { get; }
 
 			private Dictionary<string, AdvancedDropdownElement<T>> children;
 			public Dictionary<string, AdvancedDropdownElement<T>> Children => children;
 
-			public AdvancedDropdownElement(string name)
+			public AdvancedDropdownElement(string name, Texture2D icon = null)
 			{
 				Name = name;
+				Icon = icon;
 				IsItem = false;
 			}
 
 			public AdvancedDropdownElement(T item)
 			{
 				Name = item.Name;
+				Icon = item.Icon;
 				Item = item;
 				IsItem = true;
 			}
@@ -148,7 +156,7 @@ namespace Vertx.Utilities.Editor
 			}
 		}
 
-		private static readonly char[] separators = {'/', '\\'};
+		private static readonly char[] separators = { '/', '\\' };
 
 		public static AdvancedDropdown CreateAdvancedDropdownFromAttribute<T, TItem>(
 			string title,
@@ -176,8 +184,8 @@ namespace Vertx.Utilities.Editor
 			Func<Type, bool> validateType = null,
 			Vector2 minimumSize = default
 		) where T : AdvancedDropdownAttribute
-		 => CreateAdvancedDropdownFromAttribute(typeof(T), title, onSelected, validateEnabled, validateType, minimumSize);
-		
+			=> CreateAdvancedDropdownFromAttribute(typeof(T), title, onSelected, validateEnabled, validateType, minimumSize);
+
 		public static AdvancedDropdown CreateAdvancedDropdownFromAttribute(
 			Type dropdownAttributeType,
 			string title,
@@ -368,7 +376,8 @@ namespace Vertx.Utilities.Editor
 					toTarget.AddChild(child = new AdvancedDropdownItem(item.Name)
 					{
 						id = $"{item.Item.Path}/{item.Item.Name}".GetHashCode(),
-						enabled = enabledFunc?.Invoke(item.Item) ?? true
+						enabled = enabledFunc?.Invoke(item.Item) ?? true,
+						icon = item.Icon
 					});
 					localLookup.Add(child.id, item.Item);
 					return true;
