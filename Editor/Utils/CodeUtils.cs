@@ -72,7 +72,7 @@ namespace Vertx.Utilities.Editor
 
 			public void Append(string value) => stringBuilder.Append(value);
 
-			public void AppendStart(string value)
+			public void AppendWithTabs(string value)
 			{
 				stringBuilder.Append('\t', Depth);
 				stringBuilder.Append(value);
@@ -80,7 +80,7 @@ namespace Vertx.Utilities.Editor
 		
 			public void AppendLine(string value) => stringBuilder.AppendLine(value);
 
-			public void AppendLineStart(string value)
+			public void AppendWithTabsAndLine(string value)
 			{
 				stringBuilder.Append('\t', Depth);
 				stringBuilder.AppendLine(value);

@@ -13,6 +13,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
     - Ported data structures to a key value pair configuration. If you have issues with this, revert changes and switch to 2.4.5.
     - Fixed issues with multiple EnumToValues on the same object (or nested).
  - Added Icon to IAdvancedDropdownItem
+ - Added AdvancedDropdownOfSubtypes to replace AdvancedDropdownUtils.CreateAdvancedDropdownFromType
  
 ## [2.4.5] - 2021-07-29
  - Added SerializedProperty.ReverseArray

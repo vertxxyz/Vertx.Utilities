@@ -26,6 +26,11 @@ namespace Vertx.Utilities.Editor
 
 		#endregion
 
+		/// <summary>
+		/// It's easiest to serialize a StyleSheet into the MonoScript when using this for an EditorWindow.
+		/// This method is helpful when that case is not available.
+		/// </summary>
+		/// <param name="name">The name of the style sheet without extension.</param>
 		public static StyleSheet GetStyleSheet(string name)
 		{
 			string[] guids = AssetDatabase.FindAssets($"t:{nameof(StyleSheet)} {name}");
@@ -35,6 +40,11 @@ namespace Vertx.Utilities.Editor
 			return sheet;
 		}
 
+		/// <summary>
+		/// It's easiest to serialize a VisualTreeAsset into the MonoScript when using this for an EditorWindow.
+		/// This method is helpful when that case is not available.
+		/// </summary>
+		/// <param name="name">The name of the uxml without extension.</param>
 		public static VisualTreeAsset GetUXML(string name)
 		{
 			string[] guids = AssetDatabase.FindAssets($"t:{nameof(VisualTreeAsset)} {name}");
@@ -44,6 +54,11 @@ namespace Vertx.Utilities.Editor
 			return uxml;
 		}
 
+		/// <summary>
+		/// It's easiest to serialize a StyleSheet and VisualTreeAsset into the MonoScript when using this for an EditorWindow.
+		/// This method is helpful when that case is not available.
+		/// </summary>
+		/// <param name="name">The name of the style sheet and uxml without extension.</param>
 		public static (StyleSheet, VisualTreeAsset) GetStyleSheetAndUXML(string name)
 		{
 			string[] guids = AssetDatabase.FindAssets(name);

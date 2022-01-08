@@ -60,7 +60,7 @@ InstancePool.TrimExcess(prefab);
 StartCoroutine(InstancePool.WarmupCoroutine(prefab, 30));
 
 // Instances and immediately pools 30 instances of prefab.
-InstancePool.WarmupCoroutine(prefab, 30);
+InstancePool.Warmup(prefab, 30);
 ```
 
 ## EnumToValue
@@ -283,7 +283,7 @@ Many helper functions for random editor GUI functionality I use, often or otherw
 **Helper class for authoring AdvancedDropdown menus.**  
 `IPropertyDropdownItem` can be implemented to provide names and paths (`"Folder/Sub Folder"`).  
 `CreateAdvancedDropdownFromAttribute` can generate an AdvancedDropdown from all types that implement an inherited `AdvancedDropdownAttribute`.  
-`CreateAdvancedDropdownFromType` can generate one from a type inheritance structure.
+For dropdowns created from a type inheritance structure consider using `AdvancedDropdownOfSubtypes`.  
 
 ## Installation
 

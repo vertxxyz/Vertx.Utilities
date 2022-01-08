@@ -74,7 +74,7 @@ namespace Vertx.Utilities.Editor
 			{
 				this.onSelected = onSelected;
 				this.minimumSize = minimumSize;
-				//Create lookup and build root
+				// Create lookup and build root.
 				(lookup, root) = GetStructure(elements, title, validateEnabled);
 			}
 		}
@@ -117,7 +117,7 @@ namespace Vertx.Utilities.Editor
 				if (children == null)
 					children = new Dictionary<string, AdvancedDropdownElement<T>>();
 
-				//Add as a child if we have reached the bottom of the path.
+				// Add as a child if we have reached the bottom of the path.
 				if (string.IsNullOrEmpty(localPath))
 					return AddChildDirectly(child) ? this : null;
 
@@ -168,7 +168,7 @@ namespace Vertx.Utilities.Editor
 			where T : Attribute
 			where TItem : IAdvancedDropdownItem
 		{
-			//Generate elements
+			// Generate elements.
 			var types = TypeCache.GetTypesWithAttribute<T>();
 			List<TItem> elements = types.SelectMany(remap).ToList();
 
@@ -195,7 +195,7 @@ namespace Vertx.Utilities.Editor
 			Vector2 minimumSize = default
 		)
 		{
-			//Generate elements
+			// Generate elements.
 			var types = TypeCache.GetTypesWithAttribute(dropdownAttributeType);
 			List<AdvancedDropdownElement> elements = new List<AdvancedDropdownElement>();
 			foreach (Type type in types)
@@ -208,6 +208,9 @@ namespace Vertx.Utilities.Editor
 			return new AdvancedDropdownWithCallbacks(new AdvancedDropdownState(), title, minimumSize, elements, onSelected, validateEnabled);
 		}
 
+		/// <summary>
+		/// Consider using <see cref="AdvancedDropdownOfSubtypes"/>.
+		/// </summary>
 		public static AdvancedDropdown CreateAdvancedDropdownFromType(
 			Type typeQuery,
 			string title,
@@ -218,7 +221,7 @@ namespace Vertx.Utilities.Editor
 			Vector2 minimumSize = default
 		)
 		{
-			//Generate elements
+			// Generate elements.
 			var types = TypeCache.GetTypesDerivedFrom(typeQuery);
 			StringBuilder stringBuilder = new StringBuilder();
 			List<AdvancedDropdownElement> elements = new List<AdvancedDropdownElement>();
@@ -238,9 +241,9 @@ namespace Vertx.Utilities.Editor
 
 			if (elements.Count > 0)
 			{
-				//==== Remove shared root from all paths ====
+				// ==== Remove shared root from all paths ====
 
-				//Calculate shared root
+				// Calculate shared root.
 				int sharedStartingCharacter = -1;
 				while (true)
 				{
@@ -250,25 +253,25 @@ namespace Vertx.Utilities.Editor
 					for (var i = 0; i < elements.Count; i++)
 					{
 						var element = elements[i];
-						//Exit if char doesn't exist
+						// Exit if char doesn't exist.
 						if (element.Path.Length <= check)
 						{
 							checkFailed = true;
 							break;
 						}
 
-						//Assign char if first index
+						// Assign char if first index.
 						if (i == 0)
 						{
 							sharedChar = element.Path[check];
 							continue;
 						}
 
-						//Continue checking if char is the same
+						// Continue checking if char is the same.
 						if (element.Path[check] == sharedChar)
 							continue;
 
-						//Fail if char is not the same.
+						// Fail if char is not the same.
 						checkFailed = true;
 						break;
 					}
@@ -293,6 +296,9 @@ namespace Vertx.Utilities.Editor
 			);
 		}
 
+		/// <summary>
+		/// Consider using <see cref="AdvancedDropdownOfSubtypes"/>.
+		/// </summary>
 		public static AdvancedDropdown CreateAdvancedDropdownFromType<T>(
 			string title,
 			Action<AdvancedDropdownElement> onSelected,
@@ -313,7 +319,7 @@ namespace Vertx.Utilities.Editor
 		private static AdvancedDropdownElement<T> GenerateItems<T>(IEnumerable<T> items, string rootName)
 			where T : IAdvancedDropdownItem
 		{
-			//Collect all the items into their respective paths.
+			// Collect all the items into their respective paths.
 			Dictionary<string, List<T>> pathsToItems = new Dictionary<string, List<T>>();
 
 			foreach (T item in items)
