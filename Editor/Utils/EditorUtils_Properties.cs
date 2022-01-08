@@ -307,9 +307,7 @@ namespace Vertx.Utilities.Editor
 					return GetGradientValue(property);
 				case SerializedPropertyType.Generic:
 					return GetObjectFromProperty(property, out _, out _);
-#if UNITY_2019_3_OR_NEWER
 				case SerializedPropertyType.ManagedReference:
-#endif
 				default:
 					throw new NotSupportedException($"{nameof(GetPropertyValue)} does not support values of type {property.propertyType}");
 			}
@@ -380,9 +378,7 @@ namespace Vertx.Utilities.Editor
 				}
 				case SerializedPropertyType.AnimationCurve:
 					return property.animationCurveValue.ToString();
-#if UNITY_2019_3_OR_NEWER
 				case SerializedPropertyType.ManagedReference:
-#endif
 				case SerializedPropertyType.Generic:
 				default:
 					return property.ToString();
@@ -493,9 +489,7 @@ namespace Vertx.Utilities.Editor
 				case SerializedPropertyType.ExposedReference:
 					destination.exposedReferenceValue = origin.exposedReferenceValue;
 					break;
-#if UNITY_2019_3_OR_NEWER
 				case SerializedPropertyType.ManagedReference:
-#endif
 				case SerializedPropertyType.FixedBufferSize:
 				case SerializedPropertyType.Gradient:
 				case SerializedPropertyType.Generic:

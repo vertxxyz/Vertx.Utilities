@@ -342,7 +342,7 @@ namespace Vertx.Utilities.Editor
 			rect.Indent(5);
 			GUI.Label(rect, label);
 		}
-		
+
 		public static void DrawHeaderWithBackground(Rect position, GUIContent label)
 		{
 			if (Event.current.type == EventType.Repaint)
@@ -376,8 +376,8 @@ namespace Vertx.Utilities.Editor
 				GUILayout.Space(bottomMargin);
 			}
 		}
-		
-		public static void DrawBoxBackground (Rect rect)
+
+		public static void DrawBoxBackground(Rect rect)
 		{
 			if (Event.current.type == EventType.Repaint)
 				BoxBackground.Draw(rect, GUIContent.none, 0);
@@ -406,7 +406,7 @@ namespace Vertx.Utilities.Editor
 		#region Rect Extensions
 
 		public static void NextGUIRect(this ref Rect rect) => rect.y = rect.yMax + EditorGUIUtility.standardVerticalSpacing;
-		
+
 		public static Rect GetNextGUIRect(this Rect rect)
 		{
 			rect.y = rect.yMax + EditorGUIUtility.standardVerticalSpacing;

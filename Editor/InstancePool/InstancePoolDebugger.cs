@@ -46,28 +46,28 @@ namespace Vertx.Utilities.Editor
 			//Padding
 			var padding = new VisualElement
 			{
-				style = {marginBottom = 10, marginLeft = 5, marginRight = 5, marginTop = 10}, name = "Padding"
+				style = { marginBottom = 10, marginLeft = 5, marginRight = 5, marginTop = 10 }, name = "Padding"
 			};
 			root.Add(padding);
 			padding.StretchToParentSize();
 			root = padding;
 
-			root.Add(new Label("Instance Pool:") {style = {unityFontStyleAndWeight = FontStyle.Bold}});
+			root.Add(new Label("Instance Pool:") { style = { unityFontStyleAndWeight = FontStyle.Bold } });
 
 			//Type Popup
 			PopupField<string> typePopup = new PopupField<string>("Type", availableTypeNames, 0);
-			typePopup.RegisterCallback<MouseDownEvent>(evt =>
+			typePopup.RegisterCallback<MouseDownEvent, List<string>>((evt, typeNames) =>
 			{
-				availableTypeNames.Clear();
-				availableTypeNames.Add(noElement);
-				IEnumerable componentPools = (IEnumerable) InstancePools.GetValue(null);
+				typeNames.Clear();
+				typeNames.Add(noElement);
+				IEnumerable componentPools = (IEnumerable)InstancePools.GetValue(null);
 				foreach (object componentPool in componentPools)
 				{
 					Type poolType = componentPool.GetType();
 					var genericTypeArgument = poolType.GenericTypeArguments[0];
-					availableTypeNames.Add(genericTypeArgument.Name);
+					typeNames.Add(genericTypeArgument.Name);
 				}
-			});
+			}, availableTypeNames);
 			typePopup.RegisterValueChangedCallback(evt =>
 			{
 				availableComponentNames.Clear();
@@ -88,7 +88,7 @@ namespace Vertx.Utilities.Editor
 
 			//Component Popup
 			componentPopup = new PopupField<string>("Component", availableComponentNames, 0);
-			componentPopup.RegisterCallback<MouseDownEvent>(evt => RebuildComponentDropdown());
+			componentPopup.RegisterCallback<MouseDownEvent, InstancePoolDebugger>((evt, debugger) => debugger.RebuildComponentDropdown(), this);
 			componentPopup.RegisterValueChangedCallback(evt =>
 			{
 				pooledComponents.Clear();
@@ -96,33 +96,34 @@ namespace Vertx.Utilities.Editor
 				{
 					componentPopup.SetValueWithoutNotify(noElement);
 					RebuildComponentDropdown();
+#if UNITY_2021_2_OR_NEWER
+					listView.Rebuild();
+#else
 					listView.Refresh();
+#endif
 					return;
 				}
 
-				IEnumerable set = (IEnumerable) poolDictionary[component];
+				IEnumerable set = (IEnumerable)poolDictionary[component];
 				foreach (object o in set)
-					pooledComponents.Add((Component) o);
+					pooledComponents.Add((Component)o);
+#if UNITY_2021_2_OR_NEWER
+				listView.Rebuild();
+#else
 				listView.Refresh();
+#endif
 			});
 			componentPopup.SetEnabled(false);
 			root.Add(componentPopup);
-			
-#if UNITY_2020_1_OR_NEWER
+
 			HelpBox container = new HelpBox("Data is not refreshed in realtime.", HelpBoxMessageType.Warning);
-#else
-			IMGUIContainer container = new IMGUIContainer(() =>
-			{
-				EditorGUILayout.HelpBox("Data is not refreshed in realtime.", MessageType.Warning);
-			});
-#endif
 			root.Add(container);
 
 			//List View
-			listView = new ListView(pooledComponents, (int) EditorGUIUtility.singleLineHeight, () =>
+			listView = new ListView(pooledComponents, (int)EditorGUIUtility.singleLineHeight, () =>
 			{
 				VisualElement element = new VisualElement();
-				var objectField = new ObjectField {objectType = typeof(Component)};
+				var objectField = new ObjectField { objectType = typeof(Component) };
 				element.Add(objectField);
 				objectField.Q(className: ObjectField.selectorUssClassName).style.display = DisplayStyle.None;
 				objectField.RegisterValueChangedCallback(evt => objectField.SetValueWithoutNotify(evt.previousValue));
@@ -155,11 +156,19 @@ namespace Vertx.Utilities.Editor
 			{
 				chosenPoolType = null;
 				pooledComponents.Clear();
+#if UNITY_2021_2_OR_NEWER
+				listView.Rebuild();
+#else
 				listView.Refresh();
+#endif
 				return;
 			}
 
+#if UNITY_2021_2_OR_NEWER
+			listView.Rebuild();
+#else
 			listView.Refresh();
+#endif
 		}
 
 		void RebuildComponentDropdown()
@@ -168,17 +177,17 @@ namespace Vertx.Utilities.Editor
 			availableComponentNames.Clear();
 			availableComponentNames.Add(noElement);
 
-			IEnumerable componentPools = (IEnumerable) InstancePools.GetValue(null);
+			IEnumerable componentPools = (IEnumerable)InstancePools.GetValue(null);
 			foreach (object componentPool in componentPools)
 			{
 				Type poolType = componentPool.GetType();
 				var genericTypeArgument = poolType.GenericTypeArguments[0];
 				if (genericTypeArgument.Name != chosenPoolType) continue;
 				FieldInfo pool = componentPool.GetType().GetField("pool", BindingFlags.Instance | BindingFlags.NonPublic);
-				poolDictionary = (IDictionary) pool.GetValue(componentPool);
+				poolDictionary = (IDictionary)pool.GetValue(componentPool);
 				foreach (object key in poolDictionary.Keys)
 				{
-					Component component = (Component) key;
+					Component component = (Component)key;
 					string originalName = component.name;
 					string componentName = originalName;
 					int index = 1;
@@ -195,8 +204,8 @@ namespace Vertx.Utilities.Editor
 
 		#region Reflection
 
-		private FieldInfo instancePools;
-		private FieldInfo InstancePools => instancePools ?? (instancePools = typeof(InstancePool).GetField("instancePools", BindingFlags.NonPublic | BindingFlags.Static));
+		private static FieldInfo instancePools;
+		private static FieldInfo InstancePools => instancePools ?? (instancePools = typeof(InstancePool).GetField("instancePools", BindingFlags.NonPublic | BindingFlags.Static));
 
 		#endregion
 	}

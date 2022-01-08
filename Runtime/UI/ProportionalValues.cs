@@ -77,6 +77,7 @@ namespace Vertx.Utilities
 					values[i] = 0;
 					OnValueChanged?.Invoke(i, 0);
 				}
+
 				return;
 			}
 
@@ -102,7 +103,7 @@ namespace Vertx.Utilities
 
 				return;
 			}
-			
+
 			//Distribute the remaining amount proportionally across the other values
 			for (int i = 0; i < values.Length; i++)
 			{

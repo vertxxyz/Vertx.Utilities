@@ -10,7 +10,7 @@ namespace Vertx.Utilities.Editor
 		{
 			if (listType.IsArray)
 				return listType.GetElementType();
-			return listType.IsGenericType && listType.GetGenericTypeDefinition() == typeof (List<>) ? listType.GetGenericArguments()[0] : null;
+			return listType.IsGenericType && listType.GetGenericTypeDefinition() == typeof(List<>) ? listType.GetGenericArguments()[0] : null;
 		}
 
 		/// <summary>

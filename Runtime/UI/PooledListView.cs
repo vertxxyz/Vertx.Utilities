@@ -16,7 +16,7 @@ namespace Vertx.Utilities
 		}
 
 		[SerializeField] private Snapping snapping = default;
-		
+
 		[SerializeField] private RectTransform prefab = default;
 		[Min(0)]
 		[SerializeField] private float elementHeight = default;
@@ -37,19 +37,19 @@ namespace Vertx.Utilities
 			get => selectOnUp;
 			set => selectOnUp = value;
 		}
-		
+
 		public Selectable SelectOnDown
 		{
 			get => selectOnDown;
 			set => selectOnDown = value;
 		}
-		
+
 		public Selectable SelectOnLeft
 		{
 			get => selectOnLeft;
 			set => selectOnLeft = value;
 		}
-		
+
 		public Selectable SelectOnRight
 		{
 			get => selectOnRight;
@@ -93,7 +93,7 @@ namespace Vertx.Utilities
 			list = elements;
 			Refresh();
 		}
-		
+
 		void Pool()
 		{
 			startPaddingElement.transform.SetSiblingIndex(0);
@@ -113,7 +113,7 @@ namespace Vertx.Utilities
 				Debug.LogWarning($"{nameof(Refresh)} should not be called in Edit Mode");
 				return;
 			}
-			
+
 			if (startPaddingElement == null)
 			{
 				startPaddingElement = new GameObject("Start Padding", typeof(RectTransform), typeof(LayoutElement)).GetComponent<LayoutElement>();
@@ -143,7 +143,7 @@ namespace Vertx.Utilities
 			int elementCount = list.Count;
 
 			value = 1 - value; // thanks
-			
+
 			float rectHeight = viewport.rect.height;
 			float onScreenElements = rectHeight / elementHeight;
 			float totalElementHeight = elementHeight * elementCount;
@@ -158,6 +158,7 @@ namespace Vertx.Utilities
 				value = Mathf.InverseLerp(startIndex, endIndex, zeroIndex);
 				verticalScrollbar.SetValueWithoutNotify(1 - value);
 			}
+
 			SetNormalizedPosition(1 - value, 1);
 
 			float zeroIndexInUse = Mathf.Max(0, zeroIndex - 1);
@@ -170,7 +171,7 @@ namespace Vertx.Utilities
 			{
 				if (pair.Key >= zeroIndexInUse && pair.Key < endIndexInt)
 					continue;
-				
+
 				toRemove.Add(pair.Key);
 				// You love to see it
 				if (!CanvasUpdateRegistry.IsRebuildingLayout())
@@ -198,7 +199,7 @@ namespace Vertx.Utilities
 				//Automatic navigation setup
 				if (!instance.TryGetComponent<Selectable>(out var next))
 					continue;
-				
+
 				next.navigation = new Navigation
 				{
 					mode = Navigation.Mode.Explicit,
@@ -223,10 +224,10 @@ namespace Vertx.Utilities
 
 			float startPadding = Mathf.Floor(zeroIndexInUse) * elementHeight;
 			startPaddingElement.preferredHeight = startPadding;
-			((RectTransform) startPaddingElement.transform).SetSizeWithCurrentAnchors(RectTransform.Axis.Vertical, startPadding);
+			((RectTransform)startPaddingElement.transform).SetSizeWithCurrentAnchors(RectTransform.Axis.Vertical, startPadding);
 			float endPadding = totalElementHeight - (startPadding + c * elementHeight);
 			endPaddingElement.preferredHeight = endPadding;
-			((RectTransform) endPaddingElement.transform).SetSizeWithCurrentAnchors(RectTransform.Axis.Vertical, endPadding);
+			((RectTransform)endPaddingElement.transform).SetSizeWithCurrentAnchors(RectTransform.Axis.Vertical, endPadding);
 		}
 
 		IEnumerator PoolWithDelay(RectTransform value)

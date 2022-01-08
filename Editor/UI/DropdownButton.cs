@@ -26,7 +26,7 @@ namespace Vertx.Utilities.Editor
 			this.onSelect = onSelect;
 			AddToClassList(BasePopupField<string, string>.ussClassName);
 			labelElement.AddToClassList(BasePopupField<string, string>.labelUssClassName);
-			TextElement popupTextElement = new TextElement {pickingMode = PickingMode.Ignore};
+			TextElement popupTextElement = new TextElement { pickingMode = PickingMode.Ignore };
 			textElement = popupTextElement;
 			textElement.AddToClassList(BasePopupField<string, string>.textUssClassName);
 			VisualInput.AddToClassList(BasePopupField<string, string>.inputUssClassName);
@@ -47,7 +47,6 @@ namespace Vertx.Utilities.Editor
 
 		private void ShowMenu()
 		{
-			
 			GenericMenu menu = new GenericMenu();
 			foreach (var val in populateDropdown.Invoke())
 			{

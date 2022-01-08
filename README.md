@@ -1,6 +1,7 @@
 # Vertx.Utilities
 
-General Utilities for Unity
+General Utilities for Unity.  
+Unity **2020.1+**
 
 ## Table Of Contents
 
@@ -59,7 +60,7 @@ InstancePool.TrimExcess(prefab);
 StartCoroutine(InstancePool.WarmupCoroutine(prefab, 30));
 
 // Instances and immediately pools 30 instances of prefab.
-InstancePool.WarmupCoroutine(prefab, 30);
+InstancePool.Warmup(prefab, 30);
 ```
 
 ## EnumToValue
@@ -89,20 +90,11 @@ public class ShapeElement
 
 #### Field Declaration
 
-⚠️ `EnumToValue` only supports enums with consecutive values, if you are using enums with gaps then `EnumToValueDictionary` handles that with minor additional overhead. ⚠️  
 You can optionally add the `[HideFirstEnumValue]` attribute to hide the None/0 enum if it is irrelevant.
 
 ```cs
 [SerializeField]
 private EnumToValue<Shape, ShapeElement> data;
-
-
-// Pre-Unity 2020 the above has to be a "solid" generic type, so you must serialize a derived class that does not use generics.
-[System.Serializable]
-private class Data : EnumToValue<Shape, ShapeElement> { }
-
-[SerializeField]
-private Data data;
 ```
 
 #### Usage Example
@@ -134,13 +126,6 @@ A ScriptableObject containing an `EnumToValue` structure for data reuse.
 
 ```cs
 public class DataDescriptionExample : EnumDataDescription<EnumToValue<Shape, ShapeElement>> { }
-
-// Pre-Unity 2020 the above has to be a "solid" generic type, so you must serialize a derived class that does not use generics.
-public class DataDescriptionExample : EnumDataDescription<DataDescriptionExample.ShapeData>
-{ 
-    [System.Serializable]
-    public class ShapeData : EnumToValue<Shape, ShapeElement> { }
-}
 ```
 
 ## PooledListView
@@ -191,15 +176,6 @@ This is not recursive, and only will remove a single instance of the word.
 
 ```cs
 object.TrimName();
-```
-
-#### Rotation
-Helper methods for basic axis-angle rotation operations.
-```cs
-//Rotates a Quaternion in-place via an angle-axis rotation.
-rotation.RotateRef(angle, axisDir, Space.Self);
-//Returns a Quaternion rotated by a angle-axis rotation.
-transform.rotation = rotation.Rotate(angle, axisDir, Space.Self);
 ```
 
 # Editor
@@ -254,6 +230,8 @@ Many helper functions for random editor functionality I use, often or otherwise.
       Attempts to log the value in the serialized property.
     - `SimpleCopyTo`  
       Simple automatic copy for most basic serialized property types.
+    - `Reverse`
+      Reverses serialized property arrays.
 
 ## EditorGUIUtils
 
@@ -283,7 +261,7 @@ Many helper functions for random editor GUI functionality I use, often or otherw
   Advances the rect to the next position with a standardVerticalSpacing gap.
 - `rect.Indent()`
 - `rect.GetIndentedRect()`  
-  EditorGUI.IndentedRect alternatives.  
+  EditorGUI.IndentedRect alternatives.
 - `EditorGUIUtils.ZeroIndentScope`  
   Temporarily resets EditorGUI.indentLevel
 
@@ -305,7 +283,7 @@ Many helper functions for random editor GUI functionality I use, often or otherw
 **Helper class for authoring AdvancedDropdown menus.**  
 `IPropertyDropdownItem` can be implemented to provide names and paths (`"Folder/Sub Folder"`).  
 `CreateAdvancedDropdownFromAttribute` can generate an AdvancedDropdown from all types that implement an inherited `AdvancedDropdownAttribute`.  
-`CreateAdvancedDropdownFromType` can generate one from a type inheritance structure.
+For dropdowns created from a type inheritance structure consider using `AdvancedDropdownOfSubtypes`.  
 
 ## Installation
 
@@ -330,6 +308,7 @@ To add it the package to your project:
 - select <kbd>Add from Git URL</kbd>
 - paste `com.vertx.utilities`
 - click <kbd>Add</kbd>
+
 </details>
 
 <details>
@@ -344,7 +323,6 @@ You can also add it directly from GitHub on Unity 2019.4+. Note that you won't b
 - click <kbd>Add</kbd>  
   **or**
 - Edit your `manifest.json` file to contain `"com.vertx.utilities": "https://github.com/vertxxyz/Vertx.Utilities.git"`,
-
 
 To update the package with new changes, remove the lock from the `packages-lock.json` file.
 </details>

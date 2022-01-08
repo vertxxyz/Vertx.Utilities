@@ -23,8 +23,8 @@ namespace Vertx.Utilities.Editor
 				content = content.Replace(child.Key, child.Value);
 			text = content;
 			return true;
-		} 
-		
+		}
+
 		public static bool SaveAndWriteFileDialog(string fileName, string content, string extension = "cs", string title = "Save Remapped Template")
 		{
 			string path = EditorUtility.SaveFilePanel(title, Application.dataPath, fileName, extension);
@@ -50,6 +50,43 @@ namespace Vertx.Utilities.Editor
 			}
 
 			return stringBuilder.ToString();
+		}
+		
+		internal class TabbedScope : IDisposable
+		{
+			public int Depth { get; }
+
+			private readonly StringBuilder stringBuilder;
+
+			public TabbedScope(StringBuilder stringBuilder, int depth)
+			{
+				Depth = depth;
+				this.stringBuilder = stringBuilder;
+			}
+
+			public TabbedScope(TabbedScope tabbedScope)
+			{
+				Depth = tabbedScope.Depth + 1;
+				stringBuilder = tabbedScope.stringBuilder;
+			}
+
+			public void Append(string value) => stringBuilder.Append(value);
+
+			public void AppendWithTabs(string value)
+			{
+				stringBuilder.Append('\t', Depth);
+				stringBuilder.Append(value);
+			}
+		
+			public void AppendLine(string value) => stringBuilder.AppendLine(value);
+
+			public void AppendWithTabsAndLine(string value)
+			{
+				stringBuilder.Append('\t', Depth);
+				stringBuilder.AppendLine(value);
+			}
+
+			public void Dispose() { }
 		}
 	}
 }
