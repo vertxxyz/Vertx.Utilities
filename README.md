@@ -230,6 +230,8 @@ Many helper functions for random editor functionality I use, often or otherwise.
       Attempts to log the value in the serialized property.
     - `SimpleCopyTo`  
       Simple automatic copy for most basic serialized property types.
+    - `SimpleCopyInto`
+      Copy an object of the same type into most basic serialized property types. Handles collections, but not generic objects. Combine with GetFields to get the most out of it.
     - `Reverse`
       Reverses serialized property arrays.
 
