@@ -7,6 +7,7 @@ using System.Text;
 using System.Text.RegularExpressions;
 using UnityEditor;
 using UnityEngine;
+using Object = UnityEngine.Object;
 
 namespace Vertx.Utilities.Editor
 {
@@ -488,6 +489,96 @@ namespace Vertx.Utilities.Editor
 					break;
 				case SerializedPropertyType.ExposedReference:
 					destination.exposedReferenceValue = origin.exposedReferenceValue;
+					break;
+				case SerializedPropertyType.ManagedReference:
+				case SerializedPropertyType.FixedBufferSize:
+				case SerializedPropertyType.Gradient:
+				case SerializedPropertyType.Generic:
+				default:
+					throw new NotSupportedException($"{nameof(SimpleCopyTo)} does not support values of type {destination.propertyType}");
+			}
+		}
+		
+		public static void SimpleCopyInto(this SerializedProperty destination, object value)
+		{
+			if (destination.isArray && value is IList list)
+			{
+				destination.arraySize = list.Count;
+				for (int i = 0; i < list.Count; i++)
+				{
+					SerializedProperty element = destination.GetArrayElementAtIndex(i);
+					element.SimpleCopyInto(list[i]);
+				}
+				return;
+			}
+			
+			switch (destination.propertyType)
+			{
+				case SerializedPropertyType.Integer:
+					destination.intValue = (int)value;
+					break;
+				case SerializedPropertyType.Boolean:
+					destination.boolValue = (bool)value;
+					break;
+				case SerializedPropertyType.Float:
+					destination.floatValue = (float)value;
+					break;
+				case SerializedPropertyType.String:
+					destination.stringValue = (string)value;
+					break;
+				case SerializedPropertyType.ObjectReference:
+					destination.objectReferenceValue = (Object)value;
+					break;
+				case SerializedPropertyType.LayerMask:
+					destination.intValue = (int)value;
+					break;
+				case SerializedPropertyType.Enum:
+					destination.intValue = (int)value;
+					break;
+				case SerializedPropertyType.ArraySize:
+					destination.arraySize = (int)value;
+					break;
+				case SerializedPropertyType.Character:
+					destination.stringValue = (string)value;
+					break;
+				case SerializedPropertyType.Color:
+					destination.colorValue = (Color)value;
+					break;
+				case SerializedPropertyType.Vector2:
+					destination.vector2Value = (Vector2)value;
+					break;
+				case SerializedPropertyType.Vector3:
+					destination.vector3Value = (Vector3)value;
+					break;
+				case SerializedPropertyType.Vector4:
+					destination.vector4Value = (Vector4)value;
+					break;
+				case SerializedPropertyType.AnimationCurve:
+					destination.animationCurveValue = (AnimationCurve)value;
+					break;
+				case SerializedPropertyType.Quaternion:
+					destination.quaternionValue = (Quaternion)value;
+					break;
+				case SerializedPropertyType.Vector2Int:
+					destination.vector2IntValue = (Vector2Int)value;
+					break;
+				case SerializedPropertyType.Vector3Int:
+					destination.vector3IntValue = (Vector3Int)value;
+					break;
+				case SerializedPropertyType.Rect:
+					destination.rectValue = (Rect)value;
+					break;
+				case SerializedPropertyType.RectInt:
+					destination.rectIntValue = (RectInt)value;
+					break;
+				case SerializedPropertyType.Bounds:
+					destination.boundsValue = (Bounds)value;
+					break;
+				case SerializedPropertyType.BoundsInt:
+					destination.boundsIntValue = (BoundsInt)value;
+					break;
+				case SerializedPropertyType.ExposedReference:
+					destination.exposedReferenceValue = (Object)value;
 					break;
 				case SerializedPropertyType.ManagedReference:
 				case SerializedPropertyType.FixedBufferSize:
