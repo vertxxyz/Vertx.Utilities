@@ -1,3 +1,4 @@
+#if UNITY_2020_1_OR_NEWER
 using UnityEngine;
 using UnityEngine.Serialization;
 
@@ -17,3 +18,4 @@ namespace Vertx.Utilities
 		public T Data => data;
 	}
 }
+#endif

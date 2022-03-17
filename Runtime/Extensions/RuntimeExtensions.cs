@@ -2,7 +2,7 @@ using UnityEngine;
 
 namespace Vertx.Utilities
 {
-	public static partial class RuntimeUtils
+	public static class RuntimeExtensions
 	{
 		private const string cloneText = "(Clone)";
 

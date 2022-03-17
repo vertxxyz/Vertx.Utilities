@@ -15,7 +15,7 @@ namespace Vertx.Utilities.Editor
 		private readonly TextElement textElement;
 
 		private VisualElement internalVisualInput;
-		private VisualElement VisualInput => internalVisualInput ??= this.Q<VisualElement>(null, inputUssClassName);
+		private VisualElement VisualInput => internalVisualInput = internalVisualInput ?? this.Q<VisualElement>(null, inputUssClassName);
 
 		public DropdownButton(string displayValue, Func<IEnumerable<string>> populateDropdown, Func<string, bool> onSelect)
 			: this(null, displayValue, populateDropdown, onSelect) { }

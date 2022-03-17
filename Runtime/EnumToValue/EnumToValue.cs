@@ -1,4 +1,5 @@
-﻿// #define VERTX_ETV_EXCLUDE_OLD_SERIALIZATION
+﻿#if UNITY_2020_1_OR_NEWER
+// #define VERTX_ETV_EXCLUDE_OLD_SERIALIZATION
 
 using System;
 using System.Collections;
@@ -175,3 +176,4 @@ namespace Vertx.Utilities
 		}
 	}
 }
+#endif
