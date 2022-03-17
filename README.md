@@ -1,7 +1,7 @@
 # Vertx.Utilities
 
 General Utilities for Unity.  
-Unity **2020.1+**
+Unity **2020.1+** (lower versions may be supported, but will miss features).
 
 ## Table Of Contents
 
@@ -10,6 +10,7 @@ Unity **2020.1+**
     - [EnumToValue](#EnumToValue)
     - [PooledListView](#PooledListView)
     - [ProportionalValues](#ProportionalValues)
+    - [NullableBounds](#NullableBounds)
     - [Misc](#Misc)
 - [Editor](#Editor)
     - [AssetInstance](#AssetInstance)
@@ -166,6 +167,11 @@ private void Start()
     proportionalValues.OnValueChanged += (index, v) => sliders[index].SetValueWithoutNotify(v);
 }
 ```
+
+## NullableBounds
+`Bounds`, but `Encapsulate` doesn't expand from the default `(0,0,0)` when first called.  
+If a value has not yet been assigned methods like `Intersects`, `IntersectRay`, `Contains`, will return false.  
+Other query methods have `TryGet` alternatives.  
 
 ## Misc
 
