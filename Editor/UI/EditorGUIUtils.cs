@@ -405,8 +405,17 @@ namespace Vertx.Utilities.Editor
 
 		#region Rect Extensions
 
+		/// <summary>
+		/// Moves this Rect's position to max y + spacing.
+		/// </summary>
+		/// <param name="rect">The rect to modify</param>
 		public static void NextGUIRect(this ref Rect rect) => rect.y = rect.yMax + EditorGUIUtility.standardVerticalSpacing;
 
+		/// <summary>
+		/// Gets a Rect with a position modified to max y + spacing.
+		/// </summary>
+		/// <param name="rect">The original Rect.</param>
+		/// <returns>The modified Rect.</returns>
 		public static Rect GetNextGUIRect(this Rect rect)
 		{
 			rect.y = rect.yMax + EditorGUIUtility.standardVerticalSpacing;
@@ -502,6 +511,9 @@ namespace Vertx.Utilities.Editor
 
 		#endregion
 
+		/// <summary>
+		/// Temporary scope for resetting <see cref="EditorGUI.indentLevel"/> to 0.
+		/// </summary>
 		public class ZeroIndentScope : IDisposable
 		{
 			public readonly int PreviousIndent;

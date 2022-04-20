@@ -9,9 +9,10 @@ namespace Vertx.Utilities.Editor
 	/// A Generic class for creating singleton assets.
 	/// </summary>
 	/// <typeparam name="T">The Type of the class you wish to make a Singleton for (likely the same class you're extending with).</typeparam>
+	[Obsolete("AssetInstance is now built-in with ScriptableSingleton")]
 	public abstract class AssetInstance<T> : ScriptableObject where T : AssetInstance<T>
 	{
-		public enum SearchFilter
+		private enum SearchFilter
 		{
 			All,
 			Assets,
@@ -45,7 +46,7 @@ namespace Vertx.Utilities.Editor
 			}
 		}
 
-		static string[] GetSearchDirs(SearchFilter searchAssets)
+		private static string[] GetSearchDirs(SearchFilter searchAssets)
 		{
 			string[] searchDirs;
 			switch (searchAssets)

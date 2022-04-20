@@ -9,12 +9,14 @@ namespace Vertx.Utilities
 {
 	public class AdvancedDropdownOfSubtypes<T> : AdvancedDropdownOfSubtypes
 	{
-		public AdvancedDropdownOfSubtypes(AdvancedDropdownState state, Action<Type> onTypeSelectedCallback) : base(state, onTypeSelectedCallback, typeof(T)) { }
+		public AdvancedDropdownOfSubtypes(AdvancedDropdownState state, Action<Type> onTypeSelectedCallback) : base(
+			state, onTypeSelectedCallback, typeof(T)) { }
 	}
 
 	public class AdvancedDropdownOfSubtypes : AdvancedDropdown
 	{
 		private readonly Type _rootType;
+		private readonly bool _rootTypeIsGeneric;
 		private readonly Func<Type, bool> _performConstraint;
 		private readonly Action<Type> _onTypeSelected;
 
@@ -49,10 +51,11 @@ namespace Vertx.Utilities
 			List<Type> allTypes = _performConstraint != null
 				? TypeCache.GetTypesDerivedFrom(_rootType).Where(_performConstraint).ToList()
 				: TypeCache.GetTypesDerivedFrom(_rootType).ToList();
-			
+
 			List<string> allNameSpaces = allTypes.Select(t => ToNamespace(t.Namespace)).Distinct().ToList();
 			Dictionary<Type, TypeDropdownItem> typesToItems = new Dictionary<Type, TypeDropdownItem>();
-			Dictionary<string, AdvancedDropdownItem> namespaceToRootItem = new Dictionary<string, AdvancedDropdownItem>();
+			Dictionary<string, AdvancedDropdownItem> namespaceToRootItem =
+				new Dictionary<string, AdvancedDropdownItem>();
 
 			// Add namespace roots as required.
 			if (allNameSpaces.Count == 1)
@@ -84,19 +87,34 @@ namespace Vertx.Utilities
 				var newItem = new TypeDropdownItem(type);
 				if (item != null)
 					newItem.AddChild(item);
-				
-				// If this item has already been added to the list it means another subtype has created its tree. Just add this item as a child.
-				if (typesToItems.TryGetValue(type, out TypeDropdownItem me))
+
+				if (ImplementsRootType(type))
 				{
+					// If this item has already been added to the list it means another subtype has created its tree. Just add this item as a child.
+					if (!typesToItems.TryGetValue(_rootType, out TypeDropdownItem me))
+						typesToItems.Add(_rootType, me = new TypeDropdownItem(_rootType));
 					me.AddChild(newItem);
 					me.Type = null;
-					return;
+					typesToItems.Add(type, item = newItem);
+					break;
+				}
+				else
+				{
+					// If this item has already been added to the list it means another subtype has created its tree. Just add this item as a child.
+					if (typesToItems.TryGetValue(type, out TypeDropdownItem me))
+					{
+						me.AddChild(newItem);
+						me.Type = null;
+						return;
+					}
+
+					typesToItems.Add(type, item = newItem);
 				}
 
-				typesToItems.Add(type, item = newItem);
 				type = type.BaseType;
-				if (type == null || type == _rootType)
+				if (IsRoot(type))
 					break;
+
 				if (!typesToItems.TryGetValue(type, out TypeDropdownItem parent))
 					continue;
 				// There is already a type in the hierarchy that represents this item.
@@ -120,6 +138,20 @@ namespace Vertx.Utilities
 		{
 			if (item is TypeDropdownItem typeDropdownItem)
 				_onTypeSelected(typeDropdownItem.Type);
+		}
+
+		private bool IsRoot(Type type) => type == null || type == _rootType;
+
+		private bool ImplementsRootType(Type type)
+		{
+			Type[] interfaces = type.GetInterfaces();
+			foreach (Type t in interfaces)
+			{
+				if (t == _rootType)
+					return true;
+			}
+
+			return false;
 		}
 	}
 }
