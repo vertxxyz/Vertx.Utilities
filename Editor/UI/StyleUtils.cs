@@ -5,27 +5,6 @@ namespace Vertx.Utilities.Editor
 {
 	public static class StyleUtils
 	{
-		#region Vertx Style
-
-		private static StyleSheet vertxStyleSheetShared;
-		private static StyleSheet VertxStyleSheetShared => vertxStyleSheetShared == null ? vertxStyleSheetShared = GetStyleSheet("VertxStyleShared") : vertxStyleSheetShared;
-
-		private static StyleSheet vertxStyleSheetLight;
-		private static StyleSheet VertxStyleSheetLight => vertxStyleSheetLight == null ? vertxStyleSheetLight = GetStyleSheet("VertxStyleLight") : vertxStyleSheetLight;
-
-		private static StyleSheet vertxStyleSheetDark;
-		private static StyleSheet VertxStyleSheetDark => vertxStyleSheetDark == null ? vertxStyleSheetDark = GetStyleSheet("VertxStyle") : vertxStyleSheetDark;
-
-		public static void AddVertxStyleSheets(VisualElement visualElement)
-		{
-			StyleSheet styleSheetShared = VertxStyleSheetShared;
-			visualElement.styleSheets.Add(styleSheetShared);
-			StyleSheet styleSheet = EditorGUIUtility.isProSkin ? VertxStyleSheetDark : VertxStyleSheetLight;
-			visualElement.styleSheets.Add(styleSheet);
-		}
-
-		#endregion
-
 		/// <summary>
 		/// It's easiest to serialize a StyleSheet into the MonoScript when using this for an EditorWindow.
 		/// This method is helpful when that case is not available.
