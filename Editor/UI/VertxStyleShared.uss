@@ -1,7 +1,0 @@
-.noBottomMargin {
-	margin-bottom: 0;
-}
-
-.vertxOutline {
-	border-width: 1px;
-}

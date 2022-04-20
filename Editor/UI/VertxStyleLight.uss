@@ -1,8 +1,0 @@
-.vertxHeaderFoldout {
-	background-color: rgba(1, 1, 1, 0.2);
-}
-
-.vertxOutline {
-	border-width: 1px;
-	border-color: rgb(153, 153, 153);
-}

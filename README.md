@@ -186,11 +186,6 @@ object.TrimName();
 
 # Editor
 
-## AssetInstance
-
-A Generic class for creating singleton ScriptableObject assets. Helpful for settings and build scripts.  
-An AssetInstance will instance itself at its `ResourcesLocation` when `.Instance` is called if it has not previously been instanced. You can override its name with the `NicifiedTypeName` property.
-
 ## EditorUtils
 
 Many helper functions for random editor functionality I use, often or otherwise.
@@ -308,7 +303,6 @@ To add it the package to your project:
   Name: OpenUPM
   URL:  https://package.openupm.com/
   Scope(s): com.vertx
-            com.needle
   ```
 - click <kbd>Save</kbd>
 - open Package Manager
