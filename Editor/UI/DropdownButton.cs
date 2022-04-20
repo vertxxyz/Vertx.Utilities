@@ -1,17 +1,20 @@
 using System;
 using System.Collections.Generic;
 using UnityEditor;
+// ReSharper disable once RedundantUsingDirective
 using UnityEditor.UIElements;
 using UnityEngine;
 using UnityEngine.UIElements;
 
 namespace Vertx.Utilities.Editor
 {
+	/// <summary>
+	/// A UIToolkit GenericMenu dropdown button.
+	/// </summary>
 	public class DropdownButton : BaseField<string>
 	{
 		private readonly Func<IEnumerable<string>> populateDropdown;
 		private readonly Func<string, bool> onSelect;
-		private readonly VisualElement arrowElement;
 		private readonly TextElement textElement;
 
 		private VisualElement internalVisualInput;
@@ -32,7 +35,7 @@ namespace Vertx.Utilities.Editor
 			VisualInput.AddToClassList(BasePopupField<string, string>.inputUssClassName);
 			textElement.text = displayValue;
 			VisualInput.Add(textElement);
-			arrowElement = new VisualElement();
+			var arrowElement = new VisualElement();
 			arrowElement.AddToClassList(BasePopupField<string, string>.arrowUssClassName);
 			arrowElement.pickingMode = PickingMode.Ignore;
 			VisualInput.Add(arrowElement);

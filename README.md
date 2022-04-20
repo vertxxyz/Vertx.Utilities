@@ -13,7 +13,6 @@ Unity **2020.1+** (lower versions may be supported, but will miss features).
     - [NullableBounds](#NullableBounds)
     - [Misc](#Misc)
 - [Editor](#Editor)
-    - [AssetInstance](#AssetInstance)
     - [EditorUtils](#EditorUtils)
     - [EditorGUIUtils](#EditorGUIUtils)
     - [AdvancedDropdownUtils](#AdvancedDropdownUtils)
