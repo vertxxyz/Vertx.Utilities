@@ -5,6 +5,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using Object = UnityEngine.Object;
 #if UNITY_EDITOR
 using UnityEditor;
 using UnityEditor.SceneManagement;
@@ -121,10 +122,22 @@ namespace Vertx.Utilities
 						keys = null;
 						values = null;
 						Debug.Log(
-							$"{this} was upgraded. If you face serialisation issues please revert these changes and roll back Utilities to version 2. {dictionary.Count} values were ported."
+							$"{this} was upgraded. If you face serialisation issues please revert these changes and roll back Utilities to version 2. {dictionary.Count} values were ported.\n" +
+							"If you are repeatedly seeing this message, find the objects that use EnumToValue and dirty them manually before saving the project."
 						);
 #if UNITY_EDITOR
-						EditorApplication.delayCall += EditorSceneManager.MarkAllScenesDirty;
+						EditorApplication.delayCall += () =>
+						{
+							EditorSceneManager.MarkAllScenesDirty();
+							// Dirty all EnumDataDescriptions.
+							string[] guids = AssetDatabase.FindAssets("t:EnumDataDescription`1");
+							foreach (string guid in guids)
+							{
+								string path = AssetDatabase.GUIDToAssetPath(guid);
+								var o = AssetDatabase.LoadAssetAtPath<Object>(path);
+								EditorUtility.SetDirty(o);
+							}
+						};
 #endif
 						return;
 					}
