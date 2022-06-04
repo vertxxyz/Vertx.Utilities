@@ -5,6 +5,7 @@
 //     the code is regenerated.
 // </auto-generated>
 //------------------------------------------------------------------------------
+using System;
 using UnityEngine;
 using System.Collections;
 
@@ -99,13 +100,40 @@ namespace Vertx.Utilities
 			=> InstancePool<TInstanceType>.IsPooled(prefab, instance);
 
 		/// <summary>
-		/// If you are temporarily working with pools for prefabs you can remove them from the system by calling this function.
+		/// Removes references to all static pools.
+		/// This does not remove the instance pool scene, and any object that is currently pooled can and will leak into that scene unless handled manually.
+		/// </summary>
+		public static void RemovePools<TInstanceType>()
+			where TInstanceType : Component
+			=> InstancePool<TInstanceType>.RemovePools();
+
+		/// <summary>
+		/// When working with temporary pools this will remove all of them associated with a component type from the system.<br/>
+		/// This will not remove the instances that are currently pooled. Un-pool all instances before calling this function.
+		/// </summary>
+		/// /// <param name="handlePooledInstance">A callback for dealing with instances that are in the pool.</param>
+		public static void RemovePools<TInstanceType>(Action<TInstanceType> handlePooledInstance)
+			where TInstanceType : Component
+			=> InstancePool<TInstanceType>.RemovePools(handlePooledInstance);
+
+		/// <summary>
+		/// When working with temporary pools this will remove them from the system.<br/>
 		/// This will not remove the instances that are currently pooled. Un-pool all instances before calling this function.
 		/// </summary>
 		/// <param name="prefab">The prefab key referring to the pool.</param>
-		public static void RemovePrefabPool<TInstanceType>(TInstanceType prefab)
+		public static void RemovePool<TInstanceType>(TInstanceType prefab)
 			where TInstanceType : Component
-			=> InstancePool<TInstanceType>.RemovePrefabPool(prefab);
+			=> InstancePool<TInstanceType>.RemovePool(prefab);
+
+		/// <summary>
+		/// When working with temporary pools this will remove them from the system..<br/>
+		/// Handle the currently pooled instances with the <see cref="handlePooledInstance"/> parameter.
+		/// </summary>
+		/// <param name="prefab">The prefab key referring to the pool.</param>
+		/// <param name="handlePooledInstance">A callback for dealing with instances that are in the pool.</param>
+		public static void RemovePool<TInstanceType>(TInstanceType prefab, Action<TInstanceType> handlePooledInstance)
+			where TInstanceType : Component
+			=> InstancePool<TInstanceType>.RemovePool(prefab, handlePooledInstance);
 
 		/// <summary>
 		/// Sets the capacity used by <see cref="TrimExcess"/> for all instances shared between the type <see cref="TInstanceType"/>

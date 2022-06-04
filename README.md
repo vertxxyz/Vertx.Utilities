@@ -27,11 +27,11 @@ Unity **2020.1+** (lower versions may be supported, but will miss features).
 
 ```cs
 // Retrieve or instance an object from the pool
-MyComponent instance = InstancePool.Get(prefab);
+MyComponent instance = InstancePool.Get(Prefab);
 
 // Return an instance to the pool.
 // The instance is moved to the Instance Pool scene and deactivated.
-InstancePool.Pool(prefab, instance);
+InstancePool.Pool(Prefab, instance);
 ```
 
 #### Capacity and TrimExcess
@@ -41,7 +41,7 @@ This is helpful when reloading a game/scene to ensure the pool never gets out of
 
 ```cs
 // Sets the pool to only keep 30 instances of a specific prefab when TrimExcess is called.
-InstancePool.SetCapacity(prefab, 30);
+InstancePool.SetCapacity(Prefab, 30);
 // Sets the pool to only keep 30 instances of all pooled PoolObject prefabs when TrimExcess is called.
 InstancePool.SetCapacities<PoolObject>(30);
 
@@ -50,17 +50,32 @@ InstancePool.TrimExcess();
 // Trims instances in the PoolObject pool down to their capacities (20 is the default argument)
 InstancePool.TrimExcess<PoolObject>();
 // Trims instances from a specific prefab down to its capacity (20 is the default argument)
-InstancePool.TrimExcess(prefab);
+InstancePool.TrimExcess(Prefab);
 ```
 
 #### Warmup
 
 ```cs
 // Instances and immediately pools 30 instances of prefab spread over 30 frames.
-StartCoroutine(InstancePool.WarmupCoroutine(prefab, 30));
+StartCoroutine(InstancePool.WarmupCoroutine(Prefab, 30));
 
 // Instances and immediately pools 30 instances of prefab.
-InstancePool.Warmup(prefab, 30);
+InstancePool.Warmup(Prefab, 30);
+```
+
+#### Cleanup
+It's advised to avoid retaining references from pooled objects or prefabs to other objects in the scene. Clear these references before an object is pooled, then call `TrimExcess` instead to bring these allocated objects down to a predictable level.  
+When this cannot be achieved, because we're dealing with static pools you may want to ensure that they're completely unloaded at a safe point.  
+Having references from pooled objects retained in a pool is memory leak unless those references are reset in rotation, so the following methods allow you to clean up.
+
+```cs
+// Remove a pool from the system, and optionally handle what happens to the currently pooled instances.
+InstancePool.RemovePool(Prefab, instance => Destroy(instance.gameObject));
+// Remove all pools of a component type from the system, and optionally handle what happens to the currently pooled instances.
+InstancePool.RemovePools<MyComponent>(instance => Destroy(instance.gameObject));
+// Remove *all pools*, and optionally handle what happens to the currently pooled instances. This can be done to resolve all possible memory leaks.
+// You may also choose to unload the instance pool scene, but there is no utility method for doing this.
+InstancePool.RemovePools(instance => Destroy(instance.gameObject));
 ```
 
 ## EnumToValue
@@ -94,13 +109,13 @@ You can optionally add the `[HideFirstEnumValue]` attribute to hide the None/0 e
 
 ```cs
 [SerializeField]
-private EnumToValue<Shape, ShapeElement> data;
+private EnumToValue<Shape, ShapeElement> _data;
 ```
 
 #### Usage Example
 
 ```cs
-[SerializeField] private Shape shape;
+[SerializeField] private Shape _shape;
 
 private void Start()
 {
@@ -111,7 +126,7 @@ private void Start()
         meshFilter = g.AddComponent<MeshFilter>();
     
     //Configure target components with our data
-    var value = data[shape];
+    var value = _data[_shape];
     g.name = value.Name;
     meshRenderer.sharedMaterial = value.Material;
     meshFilter.sharedMesh = value.Mesh;
@@ -237,7 +252,7 @@ Many helper functions for random editor functionality I use, often or otherwise.
 
 ## EditorGUIUtils
 
-Many helper functions for random editor GUI functionality I use, often or otherwise.
+Many helper functions for random editor IMGUI functionality I use.
 
 #### Controls and Decorations
 
