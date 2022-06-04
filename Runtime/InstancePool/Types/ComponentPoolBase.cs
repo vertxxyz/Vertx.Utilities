@@ -8,14 +8,14 @@ using Object = UnityEngine.Object;
 
 namespace Vertx.Utilities
 {
-	internal abstract class ComponentPool<TInstanceType> : IEnumerable<TInstanceType> where TInstanceType : Component
+	public abstract class ComponentPoolBase<TInstanceType> : IEnumerable<TInstanceType> where TInstanceType : Component
 	{
 		public int Capacity { get; set; }
 		public TInstanceType Prefab => _prefab;
 		private readonly IPoolCollection<TInstanceType> _instances;
 		private readonly TInstanceType _prefab;
 
-		protected ComponentPool(IPoolCollection<TInstanceType> collection, TInstanceType prefab, int capacity = 20)
+		protected ComponentPoolBase(IPoolCollection<TInstanceType> collection, TInstanceType prefab, int capacity = 20)
 		{
 			_instances = collection;
 			_prefab = prefab;
@@ -41,7 +41,7 @@ namespace Vertx.Utilities
 				instance.name = _prefab.name;
 				instance.gameObject.SetActive(false);
 				InstancePool.MoveToInstancePoolScene(instance);
-				_instances.Add(instance);
+				_instances.Push(instance);
 			}
 		}
 
@@ -62,7 +62,7 @@ namespace Vertx.Utilities
 					instance.name = _prefab.name;
 					instance.gameObject.SetActive(false);
 					InstancePool.MoveToInstancePoolScene(instance);
-					_instances.Add(instance);
+					_instances.Push(instance);
 				}
 
 				yield return null;
@@ -80,7 +80,7 @@ namespace Vertx.Utilities
 		/// <returns>An instance retrieved from the pool.</returns>
 		public TInstanceType Get(Transform parent, Vector3 position, Quaternion rotation, Vector3 localScale, Space space = Space.World)
 		{
-			if (_instances.TryGet(out TInstanceType instance))
+			if (_instances.TryPop(out TInstanceType instance))
 			{
 				// Activate and re-parent
 				GameObject poppedInstanceGameObject = instance.gameObject;
@@ -119,7 +119,7 @@ namespace Vertx.Utilities
 		/// <param name="instance">The instance to return to the pool.</param>
 		public void Pool(TInstanceType instance)
 		{
-			if (_instances.Add(instance))
+			if (!_instances.Push(instance))
 			{
 #if UNITY_EDITOR
 				Debug.LogWarning($"Item {instance} is requested to be pooled for a second time. The request has been ignored.");
@@ -155,7 +155,7 @@ namespace Vertx.Utilities
 			if (_instances.Count <= Capacity) return;
 
 #if UNITY_2021_1_OR_NEWER
-			using (new HashSetPool<TInstanceType>.Get())
+			using (UnityEngine.Pool.HashSetPool<TInstanceType>.Get(out HashSet<TInstanceType> temp))
 #else
 			HashSet<TInstanceType> temp = new HashSet<TInstanceType>();
 #endif
@@ -163,7 +163,6 @@ namespace Vertx.Utilities
 		}
 		
 		IEnumerator<TInstanceType> IEnumerable<TInstanceType>.GetEnumerator() => _instances.GetEnumerator();
-        
-        public IEnumerator GetEnumerator() => _instances.GetEnumerator();
+		IEnumerator IEnumerable.GetEnumerator() => _instances.GetEnumerator();
 	}
 }

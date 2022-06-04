@@ -8,15 +8,15 @@ namespace Vertx.Utilities
 	/// An expandable pool that uses a HashSet internally.
 	/// </summary>
 	/// <typeparam name="TInstanceType">The type of component managed by the pool.</typeparam>
-	internal class PoolExpandable<TInstanceType> : IPoolCollection<TInstanceType> where TInstanceType : Component
+	internal class PoolHashSet<TInstanceType> : IPoolCollection<TInstanceType> where TInstanceType : Component
 	{
 		private readonly HashSet<TInstanceType> _instances = new HashSet<TInstanceType>();
 
 		public int Count => _instances.Count;
-		public bool Add(TInstanceType instance) => _instances.Add(instance);
+		public bool Push(TInstanceType instance) => _instances.Add(instance);
 		public bool Remove(TInstanceType instance) => _instances.Remove(instance);
 
-		public bool TryGet(out TInstanceType instance)
+		public bool TryPop(out TInstanceType instance)
 		{
 			instance = null;
 			if (_instances.Count == 0)
@@ -38,6 +38,8 @@ namespace Vertx.Utilities
 
 			if (hasNull)
 				_instances.RemoveWhere(i => i == null);
+			if (found)
+				_instances.Remove(instance);
 			return found;
 		}
 		
