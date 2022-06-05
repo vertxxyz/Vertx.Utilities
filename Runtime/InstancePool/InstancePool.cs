@@ -6,7 +6,7 @@ using UnityEngine;
 using UnityEngine.Assertions;
 #endif
 using UnityEngine.SceneManagement;
-using Object = UnityEngine.Object;
+
 // ReSharper disable MemberCanBePrivate.Global
 
 namespace Vertx.Utilities
@@ -15,6 +15,7 @@ namespace Vertx.Utilities
 	{
 		public const string InstancePoolSceneName = "Instance Pool";
 		private static Scene s_instancePoolScene;
+		internal static readonly HashSet<IComponentPoolGroup> s_instancePools = new HashSet<IComponentPoolGroup>();
 
 		/// <summary>
 		/// Gets the runtime scene InstancePool moves pooled instances to.
@@ -45,14 +46,12 @@ namespace Vertx.Utilities
 		/// </summary>
 		public static void RemovePools(Action<Component> handlePooledInstance = null)
 		{
-			foreach (IComponentPool pool in s_instancePools)
+			foreach (IComponentPoolGroup pool in s_instancePools)
 				pool.RemovePools(handlePooledInstance);
 			// Never clear the instance pools, these are initialised from a static constructor,
 			// If they are removed from the pool then we will lose tracking of them entirely until domain reload runs.
 			// s_instancePools.Clear();
 		}
-
-		internal static readonly HashSet<IComponentPool> s_instancePools = new HashSet<IComponentPool>();
 
 		/// <summary>
 		/// Destroys extra instances beyond the capacities set (or defaulted to.)
@@ -60,7 +59,7 @@ namespace Vertx.Utilities
 		/// <param name="defaultCapacity">The default maximum amount of instances kept when <see cref="TrimExcess"/> is called</param>
 		public static void TrimExcess(int defaultCapacity = 20)
 		{
-			foreach (IComponentPool pool in s_instancePools)
+			foreach (IComponentPoolGroup pool in s_instancePools)
 				pool.TrimExcess(defaultCapacity);
 		}
 
@@ -81,7 +80,7 @@ namespace Vertx.Utilities
 		}
 	}
 
-	internal interface IComponentPool
+	internal interface IComponentPoolGroup
 	{
 		void TrimExcess(int? capacityOverride);
 		void RemovePools(Action<Component> handlePooledInstance = null);
@@ -98,34 +97,34 @@ namespace Vertx.Utilities
 	/// A pool for Component instances.
 	/// </summary>
 	/// <typeparam name="TInstanceType">The Component Type associated with the pool</typeparam>
-	internal class ComponentPoolGroup<TInstanceType> : IComponentPool where TInstanceType : Component
+	internal class ComponentPoolGroup<TInstanceType> : IComponentPoolGroup where TInstanceType : Component
 	{
 #if UNITY_ASSERTIONS
 		private readonly string _getAssertPrefabMessage;
 		private readonly string _poolAssertPrefabMessage;
 		private readonly string _poolAssertInstanceMessage;
 #endif
-		
+
+		/// <summary>
+		/// Dictionary of prefab components to pools.
+		/// </summary>
+		private readonly Dictionary<TInstanceType, IComponentPool<TInstanceType>> _poolGroup = new Dictionary<TInstanceType, IComponentPool<TInstanceType>>();
+
 		public ComponentPoolGroup()
 		{
 #if UNITY_ASSERTIONS
-			_getAssertPrefabMessage = $"Prefab passed to InstancePool<{typeof(TInstanceType).Name}>{nameof(Get)} was null";
-			_poolAssertPrefabMessage = $"Prefab passed to InstancePool<{typeof(TInstanceType).Name}>{nameof(Pool)} was null";
-			_poolAssertInstanceMessage = $"Instance passed to InstancePool<{typeof(TInstanceType).Name}>{nameof(Pool)} was null";
+			_getAssertPrefabMessage = $"Prefab passed to InstancePool<{typeof(TInstanceType).Name}>{nameof(Get)} was null.";
+			_poolAssertPrefabMessage = $"Prefab passed to InstancePool<{typeof(TInstanceType).Name}>{nameof(Pool)} was null.";
+			_poolAssertInstanceMessage = $"Instance passed to InstancePool<{typeof(TInstanceType).Name}>{nameof(Pool)} was null.";
 #endif
 		}
-		
-		/// <summary>
-		/// Dictionary of prefab components to HashSets of pooled instances.
-		/// </summary>
-		private readonly Dictionary<TInstanceType, ComponentPoolBase<TInstanceType>> _poolGroup = new Dictionary<TInstanceType, ComponentPoolBase<TInstanceType>>();
 
 		/// <summary>
 		/// Returns the amount of pooled instances associated with a prefab key.
 		/// </summary>
 		/// <param name="key">The prefab key.</param>
 		/// <returns>The amount of pooled instances associated with the key.</returns>
-		public int GetCurrentlyPooledCount(TInstanceType key) => !_poolGroup.TryGetValue(key, out ComponentPoolBase<TInstanceType> set) ? 0 : set.GetCurrentlyPooledCount();
+		public int GetCurrentlyPooledCount(TInstanceType key) => !_poolGroup.TryGetValue(key, out IComponentPool<TInstanceType> pool) ? 0 : pool.Count;
 
 
 		/// <summary>
@@ -135,11 +134,7 @@ namespace Vertx.Utilities
 		/// <param name="count">The amount to ensure is pooled.</param>
 		/// <param name="parent">Optional parent.</param>
 		public void Warmup(TInstanceType prefab, int count, Transform parent = null)
-		{
-			if (!_poolGroup.TryGetValue(prefab, out var pool))
-				_poolGroup.Add(prefab, pool = new ExpandablePool<TInstanceType>(prefab));
-			pool.Warmup(count, parent);
-		}
+			=> GetPool(prefab).Warmup(count, parent);
 
 		/// <summary>
 		/// Ensures the pool has <see cref="count"/> number of instances of <see cref="prefab"/> pooled.
@@ -149,11 +144,7 @@ namespace Vertx.Utilities
 		/// <param name="parent">Optional parent.</param>
 		/// <param name="instancesPerFrame">The amount of instances created per frame.</param>
 		public IEnumerator WarmupCoroutine(TInstanceType prefab, int count, Transform parent = null, int instancesPerFrame = 1)
-		{
-			if (!_poolGroup.TryGetValue(prefab, out ComponentPoolBase<TInstanceType> pool))
-				_poolGroup.Add(prefab, pool = new ExpandablePool<TInstanceType>(prefab));
-			return pool.WarmupCoroutine(count, parent, instancesPerFrame);
-		}
+			=> GetPool(prefab).WarmupCoroutine(count, parent, instancesPerFrame);
 
 		/// <summary>
 		/// Retrieves an instance from the pool, positioned at the origin.
@@ -176,7 +167,7 @@ namespace Vertx.Utilities
 		/// <param name="rotation">Rotation of the instance</param>
 		/// <param name="space">Which space the position and rotation is applied in</param>
 		/// <returns>An instance retrieved from the pool.</returns>
-		public TInstanceType Get(TInstanceType prefab, Transform parent, Vector3 position, Quaternion rotation, Space space = Space.World) 
+		public TInstanceType Get(TInstanceType prefab, Transform parent, Vector3 position, Quaternion rotation, Space space = Space.World)
 			=> Get(prefab, parent, position, rotation, prefab.transform.localScale, space);
 
 		/// <summary>
@@ -184,59 +175,23 @@ namespace Vertx.Utilities
 		/// </summary>
 		/// <param name="prefab">The prefab key to retrieve instances of.</param>
 		/// <param name="parent">The parent to parent instances under.</param>
-		/// <param name="position">Position of the instance</param>
-		/// <param name="rotation">Rotation of the instance</param>
-		/// <param name="localScale">Local Scale of the instance</param>
-		/// <param name="space">Which space the position and rotation is applied in</param>
+		/// <param name="position">Position of the instance.</param>
+		/// <param name="rotation">Rotation of the instance.</param>
+		/// <param name="localScale">Local Scale of the instance.</param>
+		/// <param name="space">Which space the position and rotation is applied in.</param>
 		/// <returns>An instance retrieved from the pool.</returns>
 		public TInstanceType Get(TInstanceType prefab, Transform parent, Vector3 position, Quaternion rotation, Vector3 localScale, Space space = Space.World)
 		{
 #if UNITY_ASSERTIONS
 			Assert.IsNotNull(prefab, _getAssertPrefabMessage);
 #endif
-
-			// Use the pool if we have one already
-			if (_poolGroup.TryGetValue(prefab, out ComponentPoolBase<TInstanceType> pool))
-				return pool.Get(parent, position, rotation, localScale, space);
-
-			return CreateInstance(prefab, parent, position, rotation, localScale, space);
-		}
-
-		internal static TInstanceType CreateInstance(TInstanceType prefab, Transform parent, Vector3 position, Quaternion rotation, Vector3 localScale, Space space = Space.World)
-		{
-			TInstanceType instance;
-			// Otherwise return a new instance.
-			// Only when an instance is returned do we need to create a pool.
-			switch (space)
-			{
-				case Space.World:
-				{
-					instance = Object.Instantiate(prefab, position, rotation, parent);
-					Transform t = instance.transform;
-					t.localScale = localScale;
-					break;
-				}
-				case Space.Self:
-				{
-					instance = Object.Instantiate(prefab, parent);
-					Transform t = instance.transform;
-					t.localPosition = position;
-					t.localRotation = rotation;
-					t.localScale = localScale;
-					break;
-				}
-				default:
-					throw new ArgumentOutOfRangeException(nameof(space), space, null);
-			}
-
-			instance.name = prefab.name;
-			return instance;
+			return GetPool(prefab).Get(parent, position, rotation, localScale, space);
 		}
 
 		/// <summary>
 		/// Returns a Component instance to the pool.
 		/// </summary>
-		/// <param name="prefab">The prefab key used when the instance was retrieved via <see cref="Get(TInstanceType,UnityEngine.Transform)"/></param>
+		/// <param name="prefab">The prefab key used when the instance was retrieved via <see cref="Get(TInstanceType,UnityEngine.Transform)"/>.</param>
 		/// <param name="instance">The instance to return to the pool.</param>
 		public void Pool(TInstanceType prefab, TInstanceType instance)
 		{
@@ -244,15 +199,18 @@ namespace Vertx.Utilities
 			Assert.IsNotNull(prefab, _poolAssertPrefabMessage);
 			Assert.IsNotNull(instance, _poolAssertInstanceMessage);
 #endif
+			GetPool(prefab).Pool(instance);
+		}
+
+		private IComponentPool<TInstanceType> GetPool(TInstanceType prefab)
+		{
+			if (_poolGroup.TryGetValue(prefab, out IComponentPool<TInstanceType> pool))
+				return pool;
 
 			// Create a pool if we don't have one already.
-			if (!_poolGroup.TryGetValue(prefab, out ComponentPoolBase<TInstanceType> pool))
-			{
-				pool = new ExpandablePool<TInstanceType>(prefab);
-				_poolGroup.Add(prefab, pool);
-			}
-
-			pool.Pool(instance);
+			pool = new ExpandablePool<TInstanceType>(prefab);
+			_poolGroup.Add(prefab, pool);
+			return pool;
 		}
 
 		/// <summary>
@@ -261,13 +219,14 @@ namespace Vertx.Utilities
 		/// <param name="prefab">The prefab key referring to the pool.</param>
 		/// <param name="instance">The instance we are querying.</param>
 		/// <returns>True if the pool contains the queried instance.</returns>
-		public bool IsPooled(TInstanceType prefab, TInstanceType instance) => _poolGroup.TryGetValue(prefab, out ComponentPoolBase<TInstanceType> pool) && pool.IsPooled(instance);
+		public bool IsPooled(TInstanceType prefab, TInstanceType instance)
+			=> _poolGroup.TryGetValue(prefab, out IComponentPool<TInstanceType> pool) && pool.Contains(instance);
 
 		/// <summary>
 		/// When working with temporary pools this will remove all of them associated with a component type from the system.<br/>
 		/// This will not remove the instances that are currently pooled. Un-pool all instances before calling this function.
 		/// </summary>
-		public void RemovePools() => ((IComponentPool)this).RemovePools();
+		public void RemovePools() => ((IComponentPoolGroup)this).RemovePools();
 
 		/// <summary>
 		/// When working with temporary pools this will remove all of them associated with a component type from the system.<br/>
@@ -276,13 +235,13 @@ namespace Vertx.Utilities
 		/// /// <param name="handlePooledInstance">A callback for dealing with instances that are in the pool.</param>
 		public void RemovePools(Action<TInstanceType> handlePooledInstance)
 		{
-			foreach (KeyValuePair<TInstanceType, ComponentPoolBase<TInstanceType>> pair in _poolGroup)
+			foreach (KeyValuePair<TInstanceType, IComponentPool<TInstanceType>> pair in _poolGroup)
 			{
 				foreach (TInstanceType instance in pair.Value)
 					handlePooledInstance(instance);
 			}
 
-			((IComponentPool)this).RemovePools();
+			((IComponentPoolGroup)this).RemovePools();
 		}
 
 		/// <summary>
@@ -300,7 +259,7 @@ namespace Vertx.Utilities
 		/// <param name="handlePooledInstance">A callback for dealing with instances that are in the pool.</param>
 		public void RemovePool(TInstanceType prefab, Action<TInstanceType> handlePooledInstance)
 		{
-			if (!_poolGroup.TryGetValue(prefab, out ComponentPoolBase<TInstanceType> pool))
+			if (!_poolGroup.TryGetValue(prefab, out IComponentPool<TInstanceType> pool))
 				return;
 			RemovePool(prefab);
 			foreach (TInstanceType instance in pool)
@@ -312,11 +271,11 @@ namespace Vertx.Utilities
 		/// Handle the currently pooled instances with the <see cref="handlePooledInstance"/> parameter.
 		/// </summary>
 		/// <param name="handlePooledInstance">A callback for dealing with instances that are in the pool.</param>
-		void IComponentPool.RemovePools(Action<Component> handlePooledInstance)
+		void IComponentPoolGroup.RemovePools(Action<Component> handlePooledInstance)
 		{
 			if (handlePooledInstance != null)
 			{
-				foreach (KeyValuePair<TInstanceType, ComponentPoolBase<TInstanceType>> pair in _poolGroup)
+				foreach (KeyValuePair<TInstanceType, IComponentPool<TInstanceType>> pair in _poolGroup)
 				{
 					foreach (TInstanceType instance in pair.Value)
 						handlePooledInstance(instance);
@@ -326,6 +285,35 @@ namespace Vertx.Utilities
 			// Reset collections to their initial state.
 			_poolGroup.Clear();
 			_poolGroup.TrimExcess();
+		}
+
+		public delegate TPoolType CreatePool<out TPoolType>(TInstanceType prefab) where TPoolType : IComponentPool<TInstanceType>;
+
+		/// <summary>
+		/// Switch out the pool used by a prefab. If a previously created pool is found, its contents will be moved into the new one.<br/>
+		/// The default pool is an <see cref="ExpandablePool{TInstanceType}"/>.
+		/// </summary>
+		/// <param name="prefab">The prefab key referring to the pool.</param>
+		/// <param name="createPool">Used to create a pool if needed.</param>
+		/// <typeparam name="TPoolType">The type of pool we are switching to.</typeparam>
+		public void ChangePoolType<TPoolType>(TInstanceType prefab, CreatePool<TPoolType> createPool) where TPoolType : IComponentPool<TInstanceType>
+		{
+			TPoolType newPool;
+			if (_poolGroup.TryGetValue(prefab, out IComponentPool<TInstanceType> currentPool))
+			{
+				if (currentPool is TPoolType)
+					return;
+				newPool = createPool(prefab);
+				// Move instances from the old pool to the new one.
+				foreach (TInstanceType instance in currentPool)
+					newPool.Pool(instance);
+			}
+			else
+			{
+				newPool = createPool(prefab);
+			}
+
+			_poolGroup[newPool.Prefab] = newPool;
 		}
 
 		#region Capacity
@@ -345,15 +333,7 @@ namespace Vertx.Utilities
 		/// </summary>
 		/// <param name="prefab">The prefab used as a key within the pool.</param>
 		/// <param name="capacity">The maximum amount of instances kept when <see cref="TrimExcess"/> is called.</param>
-		public void SetCapacity(TInstanceType prefab, int capacity)
-		{
-			if (!_poolGroup.TryGetValue(prefab, out ComponentPoolBase<TInstanceType> pool))
-			{
-				pool = new ExpandablePool<TInstanceType>(prefab);
-				_poolGroup.Add(prefab, pool);
-			}
-			pool.Capacity = capacity;
-		}
+		public void SetCapacity(TInstanceType prefab, int capacity) => GetPool(prefab).Capacity = capacity;
 
 		/// <summary>
 		/// Destroys extra instances beyond the capacities set.<br/>
@@ -362,18 +342,12 @@ namespace Vertx.Utilities
 		/// </summary>
 		public void TrimExcess(int? capacityOverride = null)
 		{
-#if UNITY_2021_1_OR_NEWER
-			using (UnityEngine.Pool.HashSetPool<TInstanceType>.Get(out var temp))
-#else
-			HashSet<TInstanceType> temp = new HashSet<TInstanceType>();
-#endif
 			foreach (var pair in _poolGroup)
 			{
 				var pool = pair.Value;
 				if (capacityOverride.HasValue)
 					pool.Capacity = capacityOverride.Value;
-				pool.TrimExcess(temp);
-				temp.Clear();
+				pool.TrimExcess();
 			}
 		}
 
@@ -385,7 +359,7 @@ namespace Vertx.Utilities
 		/// <param name="capacity">Optional capacity override.</param>
 		public void TrimExcess(TInstanceType prefab, int? capacity = null)
 		{
-			if (!_poolGroup.TryGetValue(prefab, out ComponentPoolBase<TInstanceType> pool))
+			if (!_poolGroup.TryGetValue(prefab, out IComponentPool<TInstanceType> pool))
 				return;
 			if (capacity.HasValue)
 				pool.Capacity = capacity.Value;
