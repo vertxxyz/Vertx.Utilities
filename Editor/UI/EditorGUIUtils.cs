@@ -8,23 +8,19 @@ namespace Vertx.Utilities.Editor
 	{
 		#region Obsolete
 
-		//[Obsolete("Please update packages that call this function. It has moved to EditorUtils")]
+		[Obsolete("Please update packages that call this function. It has moved to " + nameof(EditorUtils))]
 		public static void SetProjectBrowserSearch(string search)
 			=> EditorUtils.SetProjectBrowserSearch(search);
 
-		//[Obsolete("Please update packages that call this function. It has moved to EditorUtils")]
+		[Obsolete("Please update packages that call this function. It has moved to " + nameof(EditorUtils))]
 		public static EditorWindow GetProjectBrowserWindow(bool forceOpen = false)
 			=> EditorUtils.GetProjectBrowserWindow(forceOpen);
 
-		//[Obsolete("Please update packages that call this function. It has moved to EditorUtils")]
-		public static void ShowFolderContents(int folderInstanceId, bool revealAndFrameInFolderTree)
-			=> EditorUtils.ShowFolderContents(folderInstanceId, revealAndFrameInFolderTree);
+		[Obsolete("Please update packages that call this function. It has moved to " + nameof(EditorUtils))]
+		public static void ShowFolderContents(DefaultAsset o)
+			=> EditorUtils.ShowFolderContents(o);
 
-		//[Obsolete("Please update packages that call this function. It has moved to EditorUtils")]
-		public static void ShowFolder(DefaultAsset o)
-			=> EditorUtils.ShowFolder(o);
-
-		//[Obsolete("Please update packages that call this function. It has moved to EditorUtils")]
+		[Obsolete("Please update packages that call this function. It has moved to " + nameof(EditorUtils))]
 		public static string GetCurrentlyFocusedProjectFolder()
 			=> EditorUtils.GetCurrentlyFocusedProjectFolder();
 

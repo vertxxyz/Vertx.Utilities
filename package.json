@@ -1,7 +1,7 @@
 {
   "name": "com.vertx.utilities",
   "displayName": "Utilities",
-  "version": "3.2.0",
+  "version": "4.0.0-pre.1",
     "unity": "2020.1",
   "description": "General Utilities for Unity.",
   "author": {
@@ -10,5 +10,7 @@
   },
   "keywords": [],
   "category": "Tools",
-  "dependencies": {}
+  "dependencies": {
+    "com.unity.ugui" : "1.0.0"
+  }
 }

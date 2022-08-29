@@ -4,10 +4,27 @@ All notable changes to this package will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
-## [3.2.0]
+## [4.0.0-pre.1]
+### Added
 - Added different pooling variants to InstancePool. These variants can be initialised using the InstancePool.SetType(...) method.
 - Added RemovePool(s) methods to cover clearing pools of all levels, and added a callback to handle pooled instances.
-- Changed InstancePool.RemovePrefabPool to RemovePool
+- Added UIToolkit support to EnumToValue.
+
+### Removed
+- Removed old serialization for EnumToValue. Please use version 3.1.1 and port EnumToValue data before moving to 4.0.0.
+- Removed CodeUtils.
+- Removed AssetInstance.
+- Removed StyleUtils. Please use default references to serialize StyleSheets into EditorWindows. Or use LoadAssetOfType.
+
+### Changed
+- Changed most internal access to an Assembly Definition Reference, bypassing reflection.
+- Simplified EnumToValue UI.
+- Renamed InstancePool.RemovePrefabPool to RemovePool.
+
+### Fixed
+- Fixed issues with Instance Pool Debugger.
+
+### Known issues
 
 ## [3.1.1] - 2022-04-29
 - Improved serialization porting for EnumToValueDescription objects made in version 2.

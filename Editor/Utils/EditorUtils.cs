@@ -3,11 +3,12 @@ using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Reflection;
 using UnityEditor;
 using UnityEditor.SceneManagement;
 using UnityEngine;
+using UnityEngine.Pool;
 using UnityEngine.SceneManagement;
+using Vertx.Utilities.Editor.Internal;
 using Object = UnityEngine.Object;
 
 namespace Vertx.Utilities.Editor
@@ -26,7 +27,7 @@ namespace Vertx.Utilities.Editor
 				var candidate = AssetDatabase.LoadAssetAtPath<Object>(AssetDatabase.GUIDToAssetPath(guid));
 				if (candidate == null || !type.IsInstanceOfType(candidate))
 					continue;
-				//Prioritise candidates that have the exact name that is queried for.
+				// Prioritise candidates that have the exact name that is queried for.
 				if (candidate.name == query)
 					return candidate;
 				anyCandidate = candidate;
@@ -45,7 +46,7 @@ namespace Vertx.Utilities.Editor
 				var candidate = AssetDatabase.LoadAssetAtPath<T>(AssetDatabase.GUIDToAssetPath(guid));
 				if (candidate == null)
 					continue;
-				//Prioritise candidates that have the exact name that is queried for.
+				// Prioritise candidates that have the exact name that is queried for.
 				if (candidate.name == query)
 					return candidate;
 				anyCandidate = candidate;
@@ -59,15 +60,17 @@ namespace Vertx.Utilities.Editor
 			if (!TryGetGUIDs(out var guids, typeof(T), query))
 				return Array.Empty<T>();
 
-			List<T> values = new List<T>();
-			foreach (string guid in guids)
+			using (ListPool<T>.Get(out var values))
 			{
-				var asset = AssetDatabase.LoadAssetAtPath<T>(AssetDatabase.GUIDToAssetPath(guid));
-				if (asset != null)
-					values.Add(asset);
-			}
+				foreach (string guid in guids)
+				{
+					var asset = AssetDatabase.LoadAssetAtPath<T>(AssetDatabase.GUIDToAssetPath(guid));
+					if (asset != null)
+						values.Add(asset);
+				}
 
-			return values.ToArray();
+				return values.ToArray();
+			}
 		}
 
 		private static bool TryGetGUIDs(out string[] guids, Type type, string query = null)
@@ -86,33 +89,26 @@ namespace Vertx.Utilities.Editor
 		#endregion
 
 		#region Folders
+		
+		public static int GetMainAssetInstanceID(string path) => InternalExtensions.GetMainAssetInstanceID(path);
 
-		public static void ShowFolderContents(int folderInstanceId, bool revealAndFrameInFolderTree)
-		{
-			MethodInfo showContentsMethod =
-				ProjectBrowserType.GetMethod("ShowFolderContents", BindingFlags.NonPublic | BindingFlags.Instance);
-			EditorWindow browser = EditorWindow.GetWindow(ProjectBrowserType);
-			if (browser != null)
-				showContentsMethod.Invoke(browser, new object[] { folderInstanceId, revealAndFrameInFolderTree });
-		}
-
-		public static int GetMainAssetInstanceID(string path)
-		{
-			object idObject = typeof(AssetDatabase).GetMethod("GetMainAssetInstanceID", BindingFlags.NonPublic | BindingFlags.Static)?.Invoke(null, new object[] { path });
-			if (idObject != null) return (int)idObject;
-			return -1;
-		}
-
-		public static void ShowFolder(DefaultAsset o)
+		public static void ShowFolderContents(DefaultAsset o)
 		{
 			if (o == null)
 				return;
 
-			string path = AssetDatabase.GetAssetPath(o);
+			ShowFolderContents(AssetDatabase.GetAssetPath(o));
+		}
+
+		public static void ShowFolderContents(string path)
+		{
+			if (string.IsNullOrEmpty(path))
+				return;
+
 			if (Path.GetFileName(path).Contains("."))
-				return; //DefaultAsset is a file.
-			ShowFolderContents(
-				GetMainAssetInstanceID(AssetDatabase.GUIDToAssetPath(AssetDatabase.AssetPathToGUID(path))), true
+				return; // DefaultAsset is a file.
+			InternalExtensions.ShowFolderContents(
+				InternalExtensions.GetMainAssetInstanceID(AssetDatabase.GUIDToAssetPath(AssetDatabase.AssetPathToGUID(path)))
 			);
 			GetProjectBrowserWindow(true).Repaint();
 		}
@@ -135,66 +131,13 @@ namespace Vertx.Utilities.Editor
 
 		#endregion
 
-		#region Project Browser
+		public static void SetProjectBrowserSearch(string search) => InternalExtensions.SetProjectBrowserSearch(search);
 
-		private static MethodInfo projectBrowserSetSearch;
-		private static MethodInfo ProjectBrowserSetSearch
-			=> projectBrowserSetSearch ?? (projectBrowserSetSearch = ProjectBrowserType.GetMethod("SetSearch", new[] { typeof(string) }));
+		public static EditorWindow GetProjectBrowserWindow(bool forceOpen = false) => InternalExtensions.GetProjectBrowserWindow(forceOpen);
 
-		public static void SetProjectBrowserSearch(string search)
-		{
-			EditorWindow window = GetProjectBrowserWindow(true);
-			ProjectBrowserSetSearch.Invoke(window, new object[] { search });
-		}
+		public static void SetSceneViewHierarchySearch(string search) => InternalExtensions.SetSceneViewHierarchySearch(search);
 
-		private static Type projectBrowserType;
-
-		private static Type ProjectBrowserType => projectBrowserType ?? (projectBrowserType =
-			Type.GetType("UnityEditor.ProjectBrowser,UnityEditor"));
-
-
-		public static EditorWindow GetProjectBrowserWindow(bool forceOpen = false)
-		{
-			EditorWindow projectBrowser = EditorWindow.GetWindow(ProjectBrowserType);
-			if (projectBrowser != null)
-				return projectBrowser;
-			if (!forceOpen)
-				return null;
-			EditorApplication.ExecuteMenuItem("Window/General/Project");
-			return EditorWindow.GetWindow(ProjectBrowserType);
-		}
-
-		#endregion
-
-		#region Scene Hierarchy
-
-		private static MethodInfo hierarchyWindowSetSearch;
-		private static MethodInfo HierarchyWindowSetSearch
-			=> hierarchyWindowSetSearch ?? (hierarchyWindowSetSearch = HierarchyWindowType.GetMethod("SetSearchFilter", BindingFlags.NonPublic | BindingFlags.Instance));
-
-		public static void SetSceneViewHierarchySearch(string search)
-		{
-			EditorWindow window = GetSceneViewHierarchyWindow();
-			if (window == null) return;
-			HierarchyWindowSetSearch.Invoke(window, new object[] { search, 0, false, false });
-		}
-
-		private static Type hierarchyWindowType;
-		private static Type HierarchyWindowType => hierarchyWindowType ?? (hierarchyWindowType =
-			Type.GetType("UnityEditor.SceneHierarchyWindow,UnityEditor"));
-
-		public static EditorWindow GetSceneViewHierarchyWindow(bool forceOpen = false)
-		{
-			EditorWindow hierarchyWindow = EditorWindow.GetWindow(HierarchyWindowType);
-			if (hierarchyWindow != null)
-				return hierarchyWindow;
-			if (!forceOpen)
-				return null;
-			EditorApplication.ExecuteMenuItem("Window/General/Hierarchy");
-			return EditorWindow.GetWindow(HierarchyWindowType);
-		}
-
-		#endregion
+		public static EditorWindow GetSceneViewHierarchyWindow(bool forceOpen = false) => InternalExtensions.GetSceneViewHierarchyWindow(forceOpen);
 
 		#region Editor Extensions
 
@@ -253,7 +196,7 @@ namespace Vertx.Utilities.Editor
 
 			public bool MoveNext()
 			{
-				//Avoids going beyond the end of the collection.
+				// Avoids going beyond the end of the collection.
 				if (++BuildIndex >= buildSceneCount)
 					return false;
 
@@ -285,7 +228,7 @@ namespace Vertx.Utilities.Editor
 
 			IEnumerable<T> OperateOnTransform(Transform @base)
 			{
-				//Get components
+				// Get components
 				T[] components = @base.GetComponents<T>();
 				foreach (T component in components)
 				{
@@ -314,7 +257,7 @@ namespace Vertx.Utilities.Editor
 
 		public static IEnumerable<GameObject> GetGameObjectsIncludingRoot(Transform @base)
 		{
-			//Get gameObject
+			// Get gameObject
 			yield return @base.gameObject;
 			foreach (Transform child in @base)
 			{
@@ -340,7 +283,7 @@ namespace Vertx.Utilities.Editor
 			{
 				case Component component:
 				{
-					//The component already includes the base child in its ToString function, so we can use the parent.
+					// The component already includes the base child in its ToString function, so we can use the parent.
 					Transform transform = component.transform.parent;
 					string tPath;
 					if (transform != null)
@@ -348,7 +291,7 @@ namespace Vertx.Utilities.Editor
 						tPath = AnimationUtility.CalculateTransformPath(transform, null);
 						if (persistent)
 						{
-							//For prefabs, the path already includes the root. So we can remove it from the transform path.
+							// For prefabs, the path already includes the root. So we can remove it from the transform path.
 							int indexOf = tPath.IndexOf('/');
 							tPath = indexOf < 0 ? null : tPath.Substring(indexOf + 1);
 						}
@@ -364,7 +307,7 @@ namespace Vertx.Utilities.Editor
 					break;
 				case GameObject gameObject:
 				{
-					//The gameObject already includes the base child in its ToString function, so we can use the parent.
+					// The gameObject already includes the base child in its ToString function, so we can use the parent.
 					Transform transform = gameObject.transform.parent;
 					string tPath;
 					if (transform != null)
@@ -372,7 +315,7 @@ namespace Vertx.Utilities.Editor
 						tPath = AnimationUtility.CalculateTransformPath(transform, null);
 						if (persistent)
 						{
-							//For prefabs, the path already includes the root. So we can remove it from the transform path.
+							// For prefabs, the path already includes the root. So we can remove it from the transform path.
 							int indexOf = tPath.IndexOf('/');
 							tPath = indexOf < 0 ? null : tPath.Substring(indexOf + 1);
 						}

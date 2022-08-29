@@ -55,6 +55,21 @@ namespace Vertx.Utilities
 
         public override int GetHashCode() => !_hasValue ? _hasValue.GetHashCode() : _value.GetHashCode();
 
+        public static bool operator ==(NullableBounds lhs, NullableBounds rhs)
+        {
+            if (lhs._hasValue != rhs._hasValue)
+                return false;
+            if (!lhs._hasValue) // Both don't have a value.
+                return true;
+            return lhs._value == rhs._value;
+        }
+        
+        public static bool operator !=(NullableBounds lhs, NullableBounds rhs)
+        {
+            // Returns true in the presence of NaN values.
+            return !(lhs == rhs);
+        }
+
         public static bool operator ==(NullableBounds lhs, Bounds rhs)
         {
             if (!lhs._hasValue)

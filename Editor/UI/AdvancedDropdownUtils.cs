@@ -17,7 +17,7 @@ namespace Vertx.Utilities.Editor
 		/// Paths do not contain the name. eg. "Folder/Sub Folder"
 		/// </summary>
 		string Path { get; }
-		
+
 		Texture2D Icon { get; }
 	}
 
@@ -208,6 +208,22 @@ namespace Vertx.Utilities.Editor
 			return new AdvancedDropdownWithCallbacks(new AdvancedDropdownState(), title, minimumSize, elements, onSelected, validateEnabled);
 		}
 
+		private static string GenerateTypeNamePath(Type type, StringBuilder stringBuilder, bool skipFirstType, bool nicify)
+		{
+			stringBuilder.Clear();
+			if (skipFirstType)
+				type = type.BaseType;
+			while (type != null)
+			{
+				if (stringBuilder.Length > 0)
+					stringBuilder.Insert(0, '/');
+				stringBuilder.Insert(0, nicify ? ObjectNames.NicifyVariableName(type.Name) : type.Name);
+				type = type.BaseType;
+			}
+
+			return stringBuilder.ToString();
+		}
+
 		/// <summary>
 		/// Consider using <see cref="AdvancedDropdownOfSubtypes"/>.
 		/// </summary>
@@ -236,7 +252,7 @@ namespace Vertx.Utilities.Editor
 
 				elements.Add(attribute != null
 					? new AdvancedDropdownElement(attribute, type)
-					: new AdvancedDropdownElement(type.Name, ObjectNames.NicifyVariableName(CodeUtils.GenerateTypeNamePath(type, stringBuilder, true, false)), type));
+					: new AdvancedDropdownElement(type.Name, ObjectNames.NicifyVariableName(GenerateTypeNamePath(type, stringBuilder, true, false)), type));
 			}
 
 			if (elements.Count > 0)

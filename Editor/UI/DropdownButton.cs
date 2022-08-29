@@ -60,7 +60,7 @@ namespace Vertx.Utilities.Editor
 				});
 			}
 
-			menu.DropDown(worldBound);
+			menu.DropDown(VisualInput.worldBound);
 		}
 	}
 }

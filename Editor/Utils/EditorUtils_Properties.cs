@@ -7,6 +7,7 @@ using System.Text;
 using System.Text.RegularExpressions;
 using UnityEditor;
 using UnityEngine;
+using Vertx.Utilities.Editor.Internal;
 using Object = UnityEngine.Object;
 
 namespace Vertx.Utilities.Editor
@@ -22,7 +23,7 @@ namespace Vertx.Utilities.Editor
 			lastIndexOf++;
 			if (lastIndexOf == propertyPath.Length)
 				throw GetException();
-			if (int.TryParse(propertyPath.Substring(lastIndexOf, propertyPath.Length - lastIndexOf - 1), out var value))
+			if (int.TryParse(propertyPath.Substring(lastIndexOf, propertyPath.Length - lastIndexOf - 1), out int value))
 				return value;
 			throw GetException();
 			Exception GetException() => new ArgumentException($"Property with path: \"{propertyPath}\" is not an array property.");
@@ -70,7 +71,7 @@ namespace Vertx.Utilities.Editor
 				bool enterChildren = true;
 				if (property.isArray)
 				{
-					//stringBuilder.AppendLine($"Is Array {property.propertyType} - {property.propertyPath}");
+					// stringBuilder.AppendLine($"Is Array {property.propertyType} - {property.propertyPath}");
 					switch (property.arrayElementType)
 					{
 						case "char":
@@ -90,7 +91,7 @@ namespace Vertx.Utilities.Editor
 				}
 				else if (property.hasChildren)
 				{
-					//Do nothing
+					// Do nothing
 				}
 				else
 				{
@@ -129,7 +130,7 @@ namespace Vertx.Utilities.Editor
 				stringBuilder.Append(' ', depth * 4);
 				if (substringPosition >= property.propertyPath.Length)
 				{
-					//Safety/fallback
+					// Safety/fallback
 					stringBuilder.Append(property.propertyPath);
 				}
 				else
@@ -149,16 +150,7 @@ namespace Vertx.Utilities.Editor
 		private static readonly Dictionary<string, (Type, FieldInfo)> baseTypeLookup = new Dictionary<string, (Type, FieldInfo)>();
 		private static object[] fieldInfoArray;
 
-		public static FieldInfo GetFieldInfoFromProperty(SerializedProperty property, out Type type)
-		{
-			if (fieldInfoArray == null)
-				fieldInfoArray = new object[2];
-			fieldInfoArray[0] = property;
-			fieldInfoArray[1] = null;
-			FieldInfo fieldInfo = (FieldInfo)GetFieldInfoFromPropertyMethod.Invoke(null, fieldInfoArray);
-			type = (Type)fieldInfoArray[1];
-			return fieldInfo;
-		}
+		public static FieldInfo GetFieldInfoFromProperty(SerializedProperty property, out Type type) => InternalExtensions.GetFieldInfoFromProperty(property, out type);
 
 		/// <summary>
 		/// Gets the backing object from a serialized property.
@@ -192,7 +184,7 @@ namespace Vertx.Utilities.Editor
 				}
 
 				fieldInfo = type.GetField(path, BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public);
-				//Walk up the type tree to find the field in question
+				// Walk up the type tree to find the field in question
 				if (fieldInfo == null)
 				{
 					do
@@ -387,17 +379,12 @@ namespace Vertx.Utilities.Editor
 		}
 
 		private static Gradient GetGradientValue(SerializedProperty property)
-		{
-			PropertyInfo propertyInfo = typeof(SerializedProperty).GetProperty(
-				"gradientValue",
-				BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance,
-				null,
-				typeof(Gradient),
-				Array.Empty<Type>(),
-				null
-			);
-			return propertyInfo?.GetValue(property, null) as Gradient;
-		}
+#if UNITY_2022_2_OR_NEWER
+			=> property.gradientValue;
+
+#else
+			=> InternalExtensions.GetGradientValue(property);
+#endif
 
 		public static void SimpleCopyTo(this SerializedProperty origin, SerializedProperty destination)
 		{
@@ -498,7 +485,7 @@ namespace Vertx.Utilities.Editor
 					throw new NotSupportedException($"{nameof(SimpleCopyTo)} does not support values of type {destination.propertyType}");
 			}
 		}
-		
+
 		public static void SimpleCopyInto(this SerializedProperty destination, object value)
 		{
 			if (destination.isArray && value is IList list)
@@ -509,9 +496,10 @@ namespace Vertx.Utilities.Editor
 					SerializedProperty element = destination.GetArrayElementAtIndex(i);
 					element.SimpleCopyInto(list[i]);
 				}
+
 				return;
 			}
-			
+
 			switch (destination.propertyType)
 			{
 				case SerializedPropertyType.Integer:
@@ -602,32 +590,6 @@ namespace Vertx.Utilities.Editor
 				property.MoveArrayElement(0, end);
 		}
 
-		private static Type scriptAttributeUtilityType;
-		private static Type ScriptAttributeUtilityType =>
-			scriptAttributeUtilityType ?? (scriptAttributeUtilityType = typeof(EditorWindow).Assembly.GetType("UnityEditor.ScriptAttributeUtility"));
-
-		private static MethodInfo getHandlerMethod;
-		private static MethodInfo GetHandlerMethod =>
-			getHandlerMethod ?? (getHandlerMethod = ScriptAttributeUtilityType.GetMethod("GetHandler", BindingFlags.NonPublic | BindingFlags.Static));
-
-		private static MethodInfo getFieldInfoFromPropertyMethod;
-		private static MethodInfo GetFieldInfoFromPropertyMethod =>
-			getFieldInfoFromPropertyMethod ?? (getFieldInfoFromPropertyMethod =
-				ScriptAttributeUtilityType.GetMethod("GetFieldInfoFromProperty", BindingFlags.NonPublic | BindingFlags.Static));
-
-		private static Type propertyHandlerType;
-		private static Type PropertyHandlerType =>
-			propertyHandlerType ?? (propertyHandlerType = typeof(EditorWindow).Assembly.GetType("UnityEditor.PropertyHandler"));
-
-		private static PropertyInfo hasPropertyDrawerProperty;
-		private static PropertyInfo HasPropertyDrawerProperty =>
-			hasPropertyDrawerProperty ?? (hasPropertyDrawerProperty = PropertyHandlerType.GetProperty("hasPropertyDrawer", BindingFlags.Public | BindingFlags.Instance));
-
-
-		public static bool HasCustomPropertyDrawer(SerializedProperty property)
-		{
-			var handler = GetHandlerMethod.Invoke(null, new object[] { property });
-			return (bool)HasPropertyDrawerProperty.GetValue(handler);
-		}
+		public static bool HasCustomPropertyDrawer(SerializedProperty property) => InternalExtensions.HasCustomPropertyDrawer(property);
 	}
 }

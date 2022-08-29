@@ -211,7 +211,6 @@ Many helper functions for random editor functionality I use, often or otherwise.
     - `TryGetGUIDs`
 - Folders
     - `ShowFolderContents`
-    - `ShowFolder`
     - `GetCurrentlyFocusedProjectFolder`
 - Project Browser
     - `SetProjectBrowserSearch`
@@ -330,7 +329,7 @@ To add it the package to your project:
 <details>
 <summary>Add from GitHub | <em>not recommended, no updates through UPM</em></summary>
 
-You can also add it directly from GitHub on Unity 2019.4+. Note that you won't be able to receive updates through Package Manager this way, you'll have to update manually.
+Note that you won't be able to receive updates through Package Manager this way, you'll have to update manually.
 
 - open Package Manager
 - click <kbd>+</kbd>

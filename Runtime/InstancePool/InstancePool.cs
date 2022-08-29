@@ -84,6 +84,8 @@ namespace Vertx.Utilities
 	{
 		void TrimExcess(int? capacityOverride);
 		void RemovePools(Action<Component> handlePooledInstance = null);
+		
+		IDictionary PoolGroup { get; }
 	}
 
 	public static partial class InstancePool<TInstanceType> where TInstanceType : Component
@@ -105,6 +107,8 @@ namespace Vertx.Utilities
 		private readonly string _poolAssertInstanceMessage;
 #endif
 
+		public IDictionary PoolGroup => _poolGroup;
+		
 		/// <summary>
 		/// Dictionary of prefab components to pools.
 		/// </summary>
