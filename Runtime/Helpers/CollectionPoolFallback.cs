@@ -2,9 +2,12 @@
 using System;
 using System.Collections.Generic;
 
-namespace Vertx.Utilities.Editor.Internal
+namespace Vertx.Utilities.Internal
 {
-	public interface IObjectPool<T> where T : class
+	// These classes are a direct copy of UnityEngine.Pool...
+	// Only to be used as a fallback when these classes aren't present.
+
+	internal interface IObjectPool<T> where T : class
 	{
 		int CountInactive { get; }
 
@@ -26,7 +29,7 @@ namespace Vertx.Utilities.Editor.Internal
 	/// }
 	/// </code>
 	/// </summary>
-	public struct PooledObject<T> : IDisposable where T : class
+	internal struct PooledObject<T> : IDisposable where T : class
 	{
 		readonly T m_ToReturn;
 		readonly IObjectPool<T> m_Pool;
@@ -44,7 +47,7 @@ namespace Vertx.Utilities.Editor.Internal
     /// Generic object pool implementation.
     /// </summary>
     /// <typeparam name="T">Type of the object pool.</typeparam>
-    public class ObjectPool<T> : IDisposable, IObjectPool<T> where T : class
+    internal class ObjectPool<T> : IDisposable, IObjectPool<T> where T : class
     {
         internal readonly Stack<T> m_Stack;
         readonly Func<T> m_CreateFunc;
@@ -171,7 +174,7 @@ namespace Vertx.Utilities.Editor.Internal
         }
     }
 	
-	public class CollectionPool<TCollection, TItem> where TCollection : class, ICollection<TItem>, new()
+	internal class CollectionPool<TCollection, TItem> where TCollection : class, ICollection<TItem>, new()
 	{
 		internal static readonly ObjectPool<TCollection> s_Pool = new ObjectPool<TCollection>(() => new TCollection(), null, l => l.Clear());
 
@@ -195,8 +198,8 @@ namespace Vertx.Utilities.Editor.Internal
 		public static void Release(TCollection toRelease) => s_Pool.Release(toRelease);
 	}
 
-	public class ListPool<T> : CollectionPool<List<T>, T> {}
-	public class HashSetPool<T> : CollectionPool<HashSet<T>, T> {}
-	public class DictionaryPool<TKey, TValue> : CollectionPool<Dictionary<TKey, TValue>, KeyValuePair<TKey, TValue>> {}
+	internal class ListPool<T> : CollectionPool<List<T>, T> {}
+	internal class HashSetPool<T> : CollectionPool<HashSet<T>, T> {}
+	internal class DictionaryPool<TKey, TValue> : CollectionPool<Dictionary<TKey, TValue>, KeyValuePair<TKey, TValue>> {}
 }
 #endif

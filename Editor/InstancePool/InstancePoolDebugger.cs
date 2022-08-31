@@ -2,7 +2,6 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
-using System.Reflection;
 using UnityEditor;
 using UnityEditor.UIElements;
 using UnityEngine;
@@ -21,37 +20,54 @@ namespace Vertx.Utilities.Editor
 		}
 
 		private Type instancePoolType;
+		private IntegerField valuesCount;
 		private ListView keysListView, valuesListView;
 
 		[SerializeField] private Component selectedKey;
 		private readonly List<Component> componentKeys = new List<Component>();
+		private readonly List<string> keyedPools = new List<string>();
 		private readonly List<Component> componentValues = new List<Component>();
 
 		[Flags]
 		private enum RefreshMode
 		{
-			Keys = 1,
-			Values = 1 << 1,
-			All = Keys | Values
+			Data = 1,
+			Keys = 1 << 1,
+			Values = 1 << 2,
+			DataAndValues = Data | Values,
+			DataAndKeys = Data | Keys,
+			All = Data | Keys | Values
 		}
-		
+
 		private void Refresh(RefreshMode valuesOnly = RefreshMode.All)
 		{
 			componentKeys.Clear();
+			keyedPools.Clear();
 
 			object selectedPool = null;
 
-			// Gather all pool keys
-			foreach (IComponentPoolGroup componentPoolGroup in InstancePool.s_instancePools)
+			if ((valuesOnly & RefreshMode.Data) != 0)
 			{
-				foreach (DictionaryEntry o in componentPoolGroup.PoolGroup)
+				// Gather all pool keys
+				foreach (IComponentPoolGroup componentPoolGroup in InstancePool.s_instancePools)
 				{
-					var key = (Component)o.Key;
-					componentKeys.Add(key);
+					foreach (DictionaryEntry o in componentPoolGroup.PoolGroup)
+					{
+						var key = (Component)o.Key;
+						componentKeys.Add(key);
+						keyedPools.Add(TypeNameWithoutGenerics(o.Value.GetType()));
 
-					if (selectedKey != key) continue;
-					// value = IComponentPool<TInstanceType>
-					selectedPool = o.Value;
+						if (selectedKey != key) continue;
+						// value = IComponentPool<TInstanceType>
+						selectedPool = o.Value;
+						
+						static string TypeNameWithoutGenerics(Type t)
+						{
+							string name = t.Name;
+							int index = name.IndexOf('`');
+							return index == -1 ? name : name.Substring(0, index);
+						}
+					}
 				}
 			}
 
@@ -63,20 +79,26 @@ namespace Vertx.Utilities.Editor
 					keysListView.selectedIndex = componentKeys.IndexOf(selectedKey);
 			}
 
-			if (selectedPool == null)
-				ClearList(valuesListView);
-			else
+			if ((valuesOnly & RefreshMode.Values) != 0)
 			{
-				componentValues.Clear();
-				foreach (Component o in (IEnumerable)selectedPool)
-					componentValues.Add(o);
-				RebuildList(valuesListView);
+				if (selectedPool == null)
+					ClearList(valuesListView);
+				else
+				{
+					componentValues.Clear();
+					foreach (Component o in (IEnumerable)selectedPool)
+						componentValues.Add(o);
+					RebuildList(valuesListView);
+				}
+
+				valuesCount.value = componentValues.Count;
 			}
 		}
 
 		private void OnEnable()
 		{
 			EditorApplication.playModeStateChanged += ChangedPlayMode;
+			Refresh(RefreshMode.Data);
 
 			var root = rootVisualElement;
 			// Padding
@@ -99,13 +121,14 @@ namespace Vertx.Utilities.Editor
 			root.Add(new Label("Key"));
 			keysListView = new ListView(componentKeys, (int)EditorGUIUtility.singleLineHeight, () =>
 			{
-				VisualElement entry = CreateListEntry();
+				VisualElement entry = CreateListEntry(true);
 				entry.Q<ObjectField>().pickingMode = PickingMode.Ignore;
 				return entry;
 			}, (element, i) =>
 			{
 				var objectField = element.Q<ObjectField>();
 				objectField.SetValueWithoutNotify(componentKeys[i]);
+				objectField.label = keyedPools[i];
 			})
 			{
 				style =
@@ -118,12 +141,12 @@ namespace Vertx.Utilities.Editor
 			keysListView.selectedIndicesChanged += indices =>
 			{
 				int[] ind = indices.ToArray();
-				if(ind.Length > 1)
+				if (ind.Length > 1)
 					keysListView.selectedIndex = ind.First();
 				else
 				{
 					selectedKey = componentKeys[ind[0]];
-					Refresh(RefreshMode.Values);
+					Refresh(RefreshMode.DataAndValues);
 				}
 			};
 			root.Add(keysListView);
@@ -137,7 +160,12 @@ namespace Vertx.Utilities.Editor
 #endif
 
 			// List View
-			valuesListView = new ListView(componentValues, (int)EditorGUIUtility.singleLineHeight, CreateListEntry, (element, i) =>
+			root.Add(valuesCount = new IntegerField("Values")
+			{
+				value = componentValues.Count
+			});
+			valuesCount.SetEnabled(false);
+			valuesListView = new ListView(componentValues, (int)EditorGUIUtility.singleLineHeight, CreateListEntryNoLabel, (element, i) =>
 			{
 				var objectField = element.Q<ObjectField>();
 				objectField.SetValueWithoutNotify(componentValues[i]);
@@ -154,13 +182,23 @@ namespace Vertx.Utilities.Editor
 
 			rootVisualElement.SetEnabled(Application.isPlaying);
 
-			VisualElement CreateListEntry()
+			VisualElement CreateListEntryNoLabel() => CreateListEntry(false);
+			
+			VisualElement CreateListEntry(bool label)
 			{
 				var element = new VisualElement
 				{
 					pickingMode = PickingMode.Ignore
 				};
-				var objectField = new ObjectField { objectType = typeof(Component) };
+
+				ObjectField objectField;
+				if (label)
+				{
+					objectField = new ObjectField("Label");
+					objectField.AddToClassList(ObjectField.alignedFieldUssClassName);
+				}
+				else
+					objectField = new ObjectField { objectType = typeof(Component) };
 				element.Add(objectField);
 				objectField.Q(className: ObjectField.selectorUssClassName).style.display = DisplayStyle.None;
 				objectField.RegisterValueChangedCallback(evt => objectField.SetValueWithoutNotify(evt.previousValue));

@@ -21,12 +21,23 @@ namespace Vertx.Utilities
 		public static int GetCurrentlyPooledCount(TInstanceType key)
 			=> s_componentPool.GetCurrentlyPooledCount(key);
 
+		public static bool HasPool(TInstanceType prefab)
+			=> s_componentPool.HasPool(prefab);
+
+		/// <summary>
+		/// Overrides the default <see cref="ExpandablePool{TInstanceType}"/> used by InstancePool with another instance.<br/>
+		/// If there is a pre-existing pool, instances are moved to the new pool.
+		/// </summary>
+		/// <param name="pool">The new pool to switch to.</param>
+		public static void Override(IComponentPool<TInstanceType> pool)
+			=> s_componentPool.Override(pool);
+
 		/// <summary>
 		/// Ensures the pool has <see cref="count"/> number of instances of <see cref="prefab"/> pooled.
 		/// </summary>
 		/// <param name="prefab">The prefab key to instance.</param>
 		/// <param name="count">The amount to ensure is pooled.</param>
-		/// <param name="parent">Optional parent</param>
+		/// <param name="parent">Optional parent.</param>
 		public static void Warmup(TInstanceType prefab, int count, Transform parent = null)
 			=> s_componentPool.Warmup(prefab, count, parent);
 
@@ -35,9 +46,9 @@ namespace Vertx.Utilities
 		/// </summary>
 		/// <param name="prefab">The prefab key to instance.</param>
 		/// <param name="count">The amount to ensure is pooled.</param>
-		/// <param name="parent">Optional parent</param>
-		/// <param name="instancesPerFrame">The amount of instances created per frame</param>
-		public static System.Collections.IEnumerator WarmupCoroutine(TInstanceType prefab, int count, Transform parent = null, int instancesPerFrame = 1)
+		/// <param name="parent">Optional parent.</param>
+		/// <param name="instancesPerFrame">The amount of instances created per frame.</param>
+		public static IEnumerator WarmupCoroutine(TInstanceType prefab, int count, Transform parent = null, int instancesPerFrame = 1)
 			=> s_componentPool.WarmupCoroutine(prefab, count, parent, instancesPerFrame);
 
 		/// <summary>
@@ -66,10 +77,10 @@ namespace Vertx.Utilities
 		/// </summary>
 		/// <param name="prefab">The prefab key to retrieve instances of.</param>
 		/// <param name="parent">The parent to parent instances under.</param>
-		/// <param name="position">Position of the instance</param>
-		/// <param name="rotation">Rotation of the instance</param>
-		/// <param name="localScale">Local Scale of the instance</param>
-		/// <param name="space">Which space the position and rotation is applied in</param>
+		/// <param name="position">Position of the instance.</param>
+		/// <param name="rotation">Rotation of the instance.</param>
+		/// <param name="localScale">Local Scale of the instance.</param>
+		/// <param name="space">Which space the position and rotation is applied in.</param>
 		/// <returns>An instance retrieved from the pool.</returns>
 		public static TInstanceType Get(TInstanceType prefab, Transform parent, Vector3 position, Quaternion rotation, Vector3 localScale, Space space = Space.World)
 			=> s_componentPool.Get(prefab, parent, position, rotation, localScale, space);
@@ -77,7 +88,7 @@ namespace Vertx.Utilities
 		/// <summary>
 		/// Returns a Component instance to the pool.
 		/// </summary>
-		/// <param name="prefab">The prefab key used when the instance was retrieved via <see cref="Get(TInstanceType,Transform)"/></param>
+		/// <param name="prefab">The prefab key used when the instance was retrieved via <see cref="Get(TInstanceType,Transform)"/>.</param>
 		/// <param name="instance">The instance to return to the pool.</param>
 		public static void Pool(TInstanceType prefab, TInstanceType instance)
 			=> s_componentPool.Pool(prefab, instance);
@@ -111,7 +122,8 @@ namespace Vertx.Utilities
 		/// This will not remove the instances that are currently pooled. Un-pool all instances before calling this function.
 		/// </summary>
 		/// <param name="prefab">The prefab key referring to the pool.</param>
-		public static void RemovePool(TInstanceType prefab)
+		/// <returns>The pool that was removed. Null otherwise.</returns>
+		public static IComponentPool<TInstanceType> RemovePool(TInstanceType prefab)
 			=> s_componentPool.RemovePool(prefab);
 
 		/// <summary>
@@ -120,38 +132,40 @@ namespace Vertx.Utilities
 		/// </summary>
 		/// <param name="prefab">The prefab key referring to the pool.</param>
 		/// <param name="handlePooledInstance">A callback for dealing with instances that are in the pool.</param>
-		public static void RemovePool(TInstanceType prefab, Action<TInstanceType> handlePooledInstance)
+		/// /// <returns>The pool that was removed. Null otherwise.</returns>
+		public static IComponentPool<TInstanceType> RemovePool(TInstanceType prefab, Action<TInstanceType> handlePooledInstance)
 			=> s_componentPool.RemovePool(prefab, handlePooledInstance);
 
 		/// <summary>
-		/// Sets the capacity used by <see cref="TrimExcess"/> for all instances shared between the type <see cref="TInstanceType"/>
+		/// Sets the capacity used by <see cref="TrimExcess(System.Nullable{int})"/> for all instances shared between the type <see cref="TInstanceType"/>
 		/// </summary>
-		/// <param name="capacity">The maximum amount of instances kept when <see cref="TrimExcess"/> is called.</param>
+		/// <param name="capacity">The maximum amount of instances kept when <see cref="TrimExcess(System.Nullable{int})"/> is called.</param>
 		public static void SetCapacities(int capacity)
 			=> s_componentPool.SetCapacities(capacity);
 
 		/// <summary>
-		/// Sets the capacity used by <see cref="TrimExcess"/>
+		/// Sets the capacity used by <see cref="TrimExcess(System.Nullable{int})"/>
 		/// </summary>
 		/// <param name="prefab">The prefab used as a key within the pool.</param>
-		/// <param name="capacity">The maximum amount of instances kept when <see cref="TrimExcess"/> is called.</param>
+		/// <param name="capacity">The maximum amount of instances kept when <see cref="TrimExcess(System.Nullable{int})"/> is called.</param>
 		public static void SetCapacity(TInstanceType prefab, int capacity)
 			=> s_componentPool.SetCapacity(prefab, capacity);
 
 		/// <summary>
-		/// Destroys extra instances beyond the capacities set (or defaulted to.)
+		/// Destroys extra instances beyond the capacities set.<br/>
+		/// The default capacity is 20 if <see cref="SetCapacity"/> or <see cref="SetCapacities"/> was not set.
+		/// <param name="capacityOverride">Optional capacity override.</param>
 		/// </summary>
-		/// <param name="defaultCapacity">The default maximum amount of instances kept when <see cref="TrimExcess"/> is called</param>
-		public static void TrimExcess(int defaultCapacity = 20)
-			=> s_componentPool.TrimExcess(defaultCapacity);
+		public static void TrimExcess(int? capacityOverride = null)
+			=> s_componentPool.TrimExcess(capacityOverride);
 
 		/// <summary>
-		/// Destroys extra instances beyond the capacities set (or defaulted to.)
+		/// Destroys extra instances beyond the capacities set.<br/>
+		/// The default capacity is 20 if <see cref="SetCapacity"/> or <see cref="SetCapacities"/> was not set.
 		/// </summary>
 		/// <param name="prefab">The prefab used as a key within the pool.</param>
-		/// <param name="defaultCapacity">The default maximum amount of instances kept when <see cref="TrimExcess"/> is called
-		/// if <see cref="SetCapacity"/> or <see cref="SetCapacities"/> was not set.</param>
-		public static void TrimExcess(TInstanceType prefab, int defaultCapacity = 20)
-			=> s_componentPool.TrimExcess(prefab, defaultCapacity);
+		/// <param name="capacity">Optional capacity override.</param>
+		public static void TrimExcess(TInstanceType prefab, int? capacity = null)
+			=> s_componentPool.TrimExcess(prefab, capacity);
 	}
 }

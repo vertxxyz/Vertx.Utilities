@@ -6,7 +6,7 @@ using Object = UnityEngine.Object;
 namespace Vertx.Utilities
 {
 	/// <summary>
-	/// A fixed-capacity pool that forcefully rotates, using the least recent entry when <see cref="CircularPool{TInstanceType}.Get"/> is called.<br/>
+	/// A fixed-capacity pool that uses the least recent entry when <see cref="CircularPool{TInstanceType}.Get"/> is called.<br/>
 	/// Instances are always considered a part of the pool, and can be requested at any moment.<br/>
 	/// The pool will grow to the internal size unless warmed up beforehand.<br/>
 	/// This pool use useful in circumstances where there's a fixed count of an unimportant resource, like bullet hole decals for example.
@@ -14,6 +14,7 @@ namespace Vertx.Utilities
 	/// <typeparam name="TInstanceType">The type of the root component on the prefab we want to pool.</typeparam>
 	public class CircularPool<TInstanceType> : IComponentPool<TInstanceType> where TInstanceType : Component
 	{
+		/// <inheritdoc />
 		public int Capacity
 		{
 			get => _capacity;
@@ -30,8 +31,10 @@ namespace Vertx.Utilities
 			}
 		}
 
+		/// <inheritdoc />
 		public int Count => _instances.Count;
 
+		/// <inheritdoc />
 		public TInstanceType Prefab => _prefab;
 
 		private readonly List<TInstanceType> _instances;
@@ -39,19 +42,24 @@ namespace Vertx.Utilities
 		private int _capacity;
 		private int _currentIndex;
 
-		public CircularPool(TInstanceType prefab, int capacity = 20)
+		private CircularPool() { }
+
+		public CircularPool(TInstanceType prefab, int capacity = InstancePool.DefaultPoolCapacity)
 		{
 			Capacity = capacity;
 			_prefab = prefab;
 			_instances = new List<TInstanceType>(capacity);
 		}
 
+		/// <inheritdoc />
 		public void Warmup(int count, Transform parent = null)
 			=> ComponentPoolHelper.Warmup(this, count, parent);
 
+		/// <inheritdoc />
 		public IEnumerator WarmupCoroutine(int count, Transform parent = null, int instancesPerFrame = 1)
 			=> ComponentPoolHelper.WarmupCoroutine(this, count, parent, instancesPerFrame);
 
+		/// <inheritdoc />
 		public TInstanceType Get(Transform parent, Vector3 position, Quaternion rotation, Vector3 localScale, Space space = Space.World)
 		{
 			while (true)
@@ -73,7 +81,7 @@ namespace Vertx.Utilities
 				if (instance == null)
 				{
 					// Index is null, remove it and try again.
-					RemoveIndexUnordered(_currentIndex);
+					_instances.RemoveUnorderedAt(_currentIndex);
 					continue;
 				}
 
@@ -83,16 +91,7 @@ namespace Vertx.Utilities
 			}
 		}
 
-		/// <summary>
-		/// Moves the last index to the space we want to remove, and removes the last index.
-		/// </summary>
-		private void RemoveIndexUnordered(int toRemove)
-		{
-			int lastIndex = _instances.Count - 1;
-			_instances[toRemove] = _instances[lastIndex];
-			_instances.RemoveAt(lastIndex);
-		}
-
+		/// <inheritdoc />
 		public void Pool(TInstanceType instance)
 		{
 			if (Contains(instance))
@@ -113,6 +112,7 @@ namespace Vertx.Utilities
 			ComponentPoolHelper.DisableAndMoveToInstancePoolScene(instance);
 		}
 
+		/// <inheritdoc />
 		public bool Contains(TInstanceType instance)
 		{
 			// Checks if the collection contains the instance by checking from oldest to newest.
@@ -132,17 +132,18 @@ namespace Vertx.Utilities
 			return false;
 		}
 
+		/// <inheritdoc />
 		public void TrimExcess()
 		{
 			if (_instances.Count <= Capacity) return;
-			
+
 			// Start from the start, removing any null indices so we hopefully have at least capacity worth of instances.
 			for (var i = 0; i < _instances.Count; i++)
 			{
 				TInstanceType instance = _instances[i];
 				if (instance == null)
 				{
-					RemoveIndexUnordered(i--);
+					_instances.RemoveUnorderedAt(i--);
 					continue;
 				}
 
@@ -159,7 +160,7 @@ namespace Vertx.Utilities
 					continue;
 				Object.Destroy(instance.gameObject);
 			}
-			
+
 			_instances.Capacity = _capacity;
 		}
 

@@ -6,7 +6,14 @@ namespace Vertx.Utilities
 {
 	public interface IComponentPool<TInstanceType> : IEnumerable<TInstanceType> where TInstanceType : Component
 	{
+		/// <summary>
+		/// The capacity of the pool. For expandable pools this is only used when <see cref="TrimExcess"/> is called.
+		/// </summary>
 		public int Capacity { get; set; }
+
+		/// <summary>
+		/// The prefab used to create instances for this pool, and act as a key for <see cref="InstancePool"/>.
+		/// </summary>
 		public TInstanceType Prefab { get; }
 
 		/// <summary>

@@ -6,10 +6,15 @@ using System.Linq;
 using UnityEditor;
 using UnityEditor.SceneManagement;
 using UnityEngine;
-using UnityEngine.Pool;
 using UnityEngine.SceneManagement;
 using Vertx.Utilities.Editor.Internal;
 using Object = UnityEngine.Object;
+#if !UNITY_2021_1_OR_NEWER
+// CollectionPoolFallback.cs
+using Vertx.Utilities.Internal;
+#else
+using UnityEngine.Pool;
+#endif
 
 namespace Vertx.Utilities.Editor
 {

@@ -6,9 +6,12 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## [4.0.0-pre.1]
 ### Added
-- Added different pooling variants to InstancePool. These variants can be initialised using the InstancePool.SetType(...) method.
-- Added RemovePool(s) methods to cover clearing pools of all levels, and added a callback to handle pooled instances.
+- Added different pooling variants to InstancePool. These variants can be initialised using the InstancePool.Override(...) method.
+  You can also write your own pooling variants for use with InstancePool's static structure.
+- Added InstancePool.RemovePool(s) methods to cover clearing pools of all levels, and added a callback to handle pooled instances.
+- Added InstancePool.DefaultPoolHasSafetyChecks to switch pooling to a performant unchecked variant by default.
 - Added UIToolkit support to EnumToValue.
+- Added IList<T> extensions: RemoveUnordered and RemoveUnorderedAt.
 
 ### Removed
 - Removed old serialization for EnumToValue. Please use version 3.1.1 and port EnumToValue data before moving to 4.0.0.
@@ -20,6 +23,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Changed most internal access to an Assembly Definition Reference, bypassing reflection.
 - Simplified EnumToValue UI.
 - Renamed InstancePool.RemovePrefabPool to RemovePool.
+- Renamed FindBackingProperty to FindBackingPropertyRelative (and added FindBackingProperty to SerializedObject)
 
 ### Fixed
 - Fixed issues with Instance Pool Debugger.
