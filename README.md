@@ -93,7 +93,7 @@ Supported pool types are:
 
 **Data type for associating serialized data with an enum.**  
 > **Note**  
-> This data is kept updated via the Inspector so to maintain parity it is important to inspect these fields when updating the associated enums.
+> This data is kept updated via the Inspector. To maintain parity it is important to inspect these fields when updating the associated enums.
 
 #### Example Types
 
@@ -283,6 +283,11 @@ Many helper functions for random editor IMGUI functionality I use.
 `IPropertyDropdownItem` can be implemented to provide names and paths (`"Folder/Sub Folder"`).  
 `CreateAdvancedDropdownFromAttribute` can generate an AdvancedDropdown from all types that implement an inherited `AdvancedDropdownAttribute`.  
 For dropdowns created from a type inheritance structure consider using `AdvancedDropdownOfSubtypes`.  
+
+---
+If you find this resource helpful:
+
+[![ko-fi](https://ko-fi.com/img/githubbutton_sm.svg)](https://ko-fi.com/Z8Z42ZYHB)
 
 ## Installation
 
