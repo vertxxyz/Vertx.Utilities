@@ -60,8 +60,8 @@ namespace Vertx.Utilities.Editor
 						if (selectedKey != key) continue;
 						// value = IComponentPool<TInstanceType>
 						selectedPool = o.Value;
-						
-						static string TypeNameWithoutGenerics(Type t)
+
+						string TypeNameWithoutGenerics(Type t)
 						{
 							string name = t.Name;
 							int index = name.IndexOf('`');
@@ -138,6 +138,8 @@ namespace Vertx.Utilities.Editor
 					marginTop = 5
 				}
 			};
+
+#if UNITY_2022_2_OR_NEWER
 			keysListView.selectedIndicesChanged += indices =>
 			{
 				int[] ind = indices.ToArray();
@@ -149,6 +151,24 @@ namespace Vertx.Utilities.Editor
 					Refresh(RefreshMode.DataAndValues);
 				}
 			};
+#else
+#if UNITY_2020_1_OR_NEWER
+			keysListView.onSelectionChange 
+#else
+			keysListView.onSelectionChanged
+#endif
+				+= objects =>
+			{
+				object[] obj = objects.ToArray();
+				if (obj.Length > 1)
+					keysListView.selectedIndex = componentKeys.IndexOf((Component)obj.First());
+				else
+				{
+					selectedKey = componentKeys[componentKeys.IndexOf((Component)obj[0])];
+					Refresh(RefreshMode.DataAndValues);
+				}
+			};
+#endif
 			root.Add(keysListView);
 
 #if UNITY_2020_1_OR_NEWER
@@ -183,7 +203,7 @@ namespace Vertx.Utilities.Editor
 			rootVisualElement.SetEnabled(Application.isPlaying);
 
 			VisualElement CreateListEntryNoLabel() => CreateListEntry(false);
-			
+
 			VisualElement CreateListEntry(bool label)
 			{
 				var element = new VisualElement
@@ -195,10 +215,11 @@ namespace Vertx.Utilities.Editor
 				if (label)
 				{
 					objectField = new ObjectField("Label");
-					objectField.AddToClassList(ObjectField.alignedFieldUssClassName);
+					objectField.AddToClassList(StyleSheetUtils.AlignedFieldUssClassName);
 				}
 				else
 					objectField = new ObjectField { objectType = typeof(Component) };
+
 				element.Add(objectField);
 				objectField.Q(className: ObjectField.selectorUssClassName).style.display = DisplayStyle.None;
 				objectField.RegisterValueChangedCallback(evt => objectField.SetValueWithoutNotify(evt.previousValue));

@@ -9,17 +9,17 @@ namespace Vertx.Utilities
 		/// <summary>
 		/// The capacity of the pool. For expandable pools this is only used when <see cref="TrimExcess"/> is called.
 		/// </summary>
-		public int Capacity { get; set; }
+		int Capacity { get; set; }
 
 		/// <summary>
 		/// The prefab used to create instances for this pool, and act as a key for <see cref="InstancePool"/>.
 		/// </summary>
-		public TInstanceType Prefab { get; }
+		TInstanceType Prefab { get; }
 
 		/// <summary>
 		/// The amount of pooled instances.
 		/// </summary>
-		public int Count { get; }
+		int Count { get; }
 
 		/// <summary>
 		/// Ensures the pool has <see cref="count"/> number of instances of <see cref="Prefab"/> pooled.

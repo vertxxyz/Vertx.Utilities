@@ -97,7 +97,7 @@ namespace Vertx.Utilities.Editor
 						tooltip = enumNames[i].tooltip
 					};
 					propertyField.AddToClassList(UssPropertySingleLineStyle);
-					propertyField.AddToClassList(BaseField<int>.alignedFieldUssClassName);
+					propertyField.AddToClassList(StyleSheetUtils.AlignedFieldUssClassName);
 					box.Add(propertyField);
 				}
 			}

@@ -1,7 +1,9 @@
 # Vertx.Utilities
 
 General utilities for Unity.  
-Unity **2020.1+** (lower versions may be supported, but will miss features).
+
+> **Warning**  
+> Unity **2020.1+** (lower versions may be supported, but will miss features).
 
 ## Table Of Contents
 

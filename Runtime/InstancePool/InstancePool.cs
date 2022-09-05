@@ -141,7 +141,8 @@ namespace Vertx.Utilities
 				prefab,
 				pool = InstancePool.DefaultPoolHasSafetyChecks
 					? new ExpandablePool<TInstanceType>(prefab)
-					: new ExpandablePoolUnchecked<TInstanceType>(prefab)
+					: (IComponentPool<TInstanceType>) // 2019.4 needs this
+					new ExpandablePoolUnchecked<TInstanceType>(prefab)
 			);
 			return pool;
 		}
@@ -341,8 +342,10 @@ namespace Vertx.Utilities
 
 			// Reset collections to their initial state.
 			_poolGroup.Clear();
+#if UNITY_2022_1_OR_NEWER
 			// Set the internal dictionary to have no entries. If you're calling this method, lets truly clear all the data.
 			_poolGroup.TrimExcess();
+#endif
 		}
 
 		#region Capacity
