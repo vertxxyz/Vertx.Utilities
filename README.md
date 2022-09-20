@@ -202,14 +202,18 @@ If a value has not yet been assigned methods like `Intersects`, `IntersectRay`, 
 Other query methods have `TryGet` alternatives.  
 
 ## Extensions
-
 | Name                                                        | Description                                                                                                                                           |
 |-------------------------------------------------------------|-------------------------------------------------------------------------------------------------------------------------------------------------------|
 | `IList<T>.RemoveUnordered`<br/>`IList<T>.RemoveUnorderedAt` | Removes an item from a list without caring about maintaining order.<br/>(Moves the last element into the hole and removes it from the end)            |
 | `UnityEngine.Object.TrimName`                               | Trims appended text from Object names. Will trim `(Clone)` by default.<br/>This is not recursive, and only will remove a single instance of the word. |
 
-# Editor
+## Utils
+| Name         | Description                                                 |
+|--------------|-------------------------------------------------------------|
+| `EditorOnly` | A call to a lambda that will be stripped in builds.         |
+| `DebugOnly`  | A call to a lambda that will be stripped in release builds. |
 
+# Editor
 ## EditorUtils
 
 Many helper functions for random editor functionality I use, often or otherwise.

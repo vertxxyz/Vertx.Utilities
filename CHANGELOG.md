@@ -12,6 +12,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added InstancePool.DefaultPoolHasSafetyChecks to switch pooling to a performant unchecked variant by default.
 - Added UIToolkit support to EnumToValue.
 - Added IList<T> extensions: RemoveUnordered and RemoveUnorderedAt.
+- Added Utils.EditorOnly and Utils.DebugOnly.
 
 ### Removed
 - Removed old serialization for EnumToValue. Please use version 3.1.1 and port EnumToValue data before moving to 4.0.0.
