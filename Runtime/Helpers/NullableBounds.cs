@@ -1,4 +1,5 @@
 using System;
+using System.Runtime.CompilerServices;
 using UnityEngine;
 
 namespace Vertx.Utilities
@@ -11,7 +12,7 @@ namespace Vertx.Utilities
     ///	Other query methods have `TryGet` alternatives.
     /// </summary>
     public struct NullableBounds : IEquatable<Bounds>, IEquatable<NullableBounds>
-#if UNITY_2021_1_OR_NEWER
+#if UNITY_2020_1_OR_NEWER
         , IFormattable
 #endif
     {
@@ -19,7 +20,9 @@ namespace Vertx.Utilities
 
         public Bounds Value
         {
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
             get => _value;
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
             set
             {
                 _value = value;
@@ -42,8 +45,10 @@ namespace Vertx.Utilities
             _hasValue = true;
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public bool Equals(Bounds other) => _hasValue && _value.Equals(other);
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public bool Equals(NullableBounds other)
         {
             if (!_hasValue || !other._hasValue)
@@ -51,10 +56,13 @@ namespace Vertx.Utilities
             return _value.Equals(other._value);
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public override bool Equals(object obj) => obj is NullableBounds other && Equals(other);
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public override int GetHashCode() => !_hasValue ? _hasValue.GetHashCode() : _value.GetHashCode();
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static bool operator ==(NullableBounds lhs, NullableBounds rhs)
         {
             if (lhs._hasValue != rhs._hasValue)
@@ -64,12 +72,14 @@ namespace Vertx.Utilities
             return lhs._value == rhs._value;
         }
         
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static bool operator !=(NullableBounds lhs, NullableBounds rhs)
         {
             // Returns true in the presence of NaN values.
             return !(lhs == rhs);
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static bool operator ==(NullableBounds lhs, Bounds rhs)
         {
             if (!lhs._hasValue)
@@ -78,18 +88,21 @@ namespace Vertx.Utilities
             return lhs._value == rhs;
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static bool operator !=(NullableBounds lhs, Bounds rhs)
         {
             // Returns true in the presence of NaN values.
             return !(lhs == rhs);
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void SetMinMax(Vector3 min, Vector3 max)
         {
             _value.SetMinMax(min, max);
             _hasValue = true;
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void Encapsulate(Bounds bounds)
         {
             if (!_hasValue)
@@ -98,6 +111,7 @@ namespace Vertx.Utilities
                 _value.Encapsulate(bounds);
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void Encapsulate(NullableBounds bounds)
         {
             if (!bounds._hasValue)
@@ -109,6 +123,7 @@ namespace Vertx.Utilities
                 _value.Encapsulate(bounds._value);
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void Encapsulate(Vector3 point)
         {
             if (!_hasValue)
@@ -117,8 +132,10 @@ namespace Vertx.Utilities
                 _value.Encapsulate(point);
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public bool Contains(Vector3 point) => _hasValue && _value.Contains(point);
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public bool TryGetSqrDistance(Vector3 point, out float distance)
         {
             if (!_hasValue)
@@ -131,6 +148,7 @@ namespace Vertx.Utilities
             return true;
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public float SqrDistance(Vector3 point)
         {
             if (!_hasValue)
@@ -144,6 +162,7 @@ namespace Vertx.Utilities
             return _value.SqrDistance(point);
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public bool TryGetClosestPoint(Vector3 query, out Vector3 point)
         {
             if (!_hasValue)
@@ -156,6 +175,7 @@ namespace Vertx.Utilities
             return true;
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public Vector3 ClosestPoint(Vector3 point)
         {
             if (!_hasValue)
@@ -169,6 +189,7 @@ namespace Vertx.Utilities
             return _value.ClosestPoint(point);
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void Expand(float amount)
         {
             if (!_hasValue)
@@ -181,6 +202,7 @@ namespace Vertx.Utilities
             _value.Expand(amount);
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void Expand(Vector3 amount)
         {
             if (!_hasValue)
@@ -193,24 +215,31 @@ namespace Vertx.Utilities
             _value.Expand(amount);
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         // Does another bounding box intersect with this bounding box?
         public bool Intersects(Bounds bounds) => _hasValue && _value.Intersects(bounds);
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public bool IntersectRay(Ray ray) => _hasValue && _value.IntersectRay(ray);
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public bool IntersectRay(Ray ray, out float distance)
         {
             distance = 0;
             return _hasValue && _value.IntersectRay(ray, out distance);
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static implicit operator NullableBounds(Bounds bounds) => new NullableBounds(bounds);
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public override string ToString() => !_hasValue ? "Null" : _value.ToString();
         
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public string ToString(string format) => !_hasValue ? "Null" : _value.ToString(format);
 
-#if UNITY_2021_1_OR_NEWER
+#if UNITY_2020_1_OR_NEWER
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public string ToString(string format, IFormatProvider formatProvider) => !_hasValue ? "Null" : _value.ToString(format, formatProvider);
 #endif
     }
