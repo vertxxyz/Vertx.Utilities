@@ -1,14 +1,22 @@
 {
-  "name": "Vertx.Utilities.Runtime",
-  "rootNamespace": "Vertx.Utilities",
-  "references": [],
-  "includePlatforms": [],
-  "excludePlatforms": [],
-  "allowUnsafeCode": false,
-  "overrideReferences": true,
-  "precompiledReferences": [],
-  "autoReferenced": true,
-  "defineConstraints": [],
-  "versionDefines": [],
-  "noEngineReferences": false
+    "name": "Vertx.Utilities.Runtime",
+    "rootNamespace": "Vertx.Utilities",
+    "references": [
+        "GUID:2bafac87e7f4b9b418d9448d219b01ab"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": true,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [
+        {
+            "name": "com.unity.modules.ui",
+            "expression": "0.0.0",
+            "define": "UNITY_UI"
+        }
+    ],
+    "noEngineReferences": false
 }

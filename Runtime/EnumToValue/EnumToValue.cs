@@ -1,15 +1,8 @@
 ﻿#if UNITY_2020_1_OR_NEWER
-// #define VERTX_ETV_EXCLUDE_OLD_SERIALIZATION
-
 using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-using Object = UnityEngine.Object;
-#if UNITY_EDITOR
-using UnityEditor;
-using UnityEditor.SceneManagement;
-#endif
 
 namespace Vertx.Utilities
 {
@@ -19,7 +12,8 @@ namespace Vertx.Utilities
 	[Serializable]
 	public abstract class EnumToValueBase { }
 
-	public class HideFirstEnumValue : Attribute { }
+	[AttributeUsage(AttributeTargets.Field)]
+	public class HideFirstEnumValueAttribute : Attribute { }
 
 	/// <summary>
 	/// A helper class to associate enum values to data, and display that appropriately in the inspector
@@ -54,13 +48,6 @@ namespace Vertx.Utilities
 		private Dictionary<T, TValue> dictionary;
 		[SerializeField] private Pair[] pairs;
 
-#if !VERTX_ETV_EXCLUDE_OLD_SERIALIZATION
-		// Old serialized representation.
-		// This will be removed in the next major version.
-		[SerializeField] protected T[] keys;
-		[SerializeField] private TValue[] values;
-#endif
-
 		public TValue GetValue(T key) => this[key];
 		public bool ContainsKey(T key) => dictionary.ContainsKey(key);
 
@@ -90,102 +77,21 @@ namespace Vertx.Utilities
 
 		public void OnBeforeSerialize()
 		{
-			//Don't do anything because we directly modify and re-serialize this via EnumToValueDrawer.
+			// Don't do anything because we directly modify and re-serialize this via EnumToValueDrawer.
 		}
 
 		public void OnAfterDeserialize()
 		{
 			int pairsCount = pairs?.Length ?? 0;
 
-#if !VERTX_ETV_EXCLUDE_OLD_SERIALIZATION
-			if (pairsCount == 0)
+			dictionary = new Dictionary<T, TValue>();
+			for (int i = 0; i < pairsCount; i++)
 			{
-				// Handle old serialization versions.
-				if (keys?.Length > 0)
-				{
-					// EnumToValueDictionary
-					int count = values == null ? 0 : Mathf.Min(keys.Length, values.Length);
-					if (count > 0)
-					{
-						dictionary = new Dictionary<T, TValue>();
-						pairs = new Pair[count];
-						for (int i = 0; i < count; i++)
-						{
-							// ReSharper disable twice PossibleNullReferenceException
-							T key = keys[i];
-							TValue value = values[i];
-							pairs[i] = new Pair(key, value);
-							if (dictionary.ContainsKey(key)) continue;
-							dictionary.Add(key, value);
-						}
-
-						keys = null;
-						values = null;
-						Debug.Log(
-							$"{this} was upgraded. If you face serialisation issues please revert these changes and roll back Utilities to version 2. {dictionary.Count} values were ported.\n" +
-							"If you are repeatedly seeing this message, find the objects that use EnumToValue and dirty them manually before saving the project."
-						);
-#if UNITY_EDITOR
-						EditorApplication.delayCall += () =>
-						{
-							EditorSceneManager.MarkAllScenesDirty();
-							// Dirty all EnumDataDescriptions.
-							string[] guids = AssetDatabase.FindAssets("t:EnumDataDescription`1");
-							foreach (string guid in guids)
-							{
-								string path = AssetDatabase.GUIDToAssetPath(guid);
-								var o = AssetDatabase.LoadAssetAtPath<Object>(path);
-								EditorUtility.SetDirty(o);
-							}
-						};
-#endif
-						return;
-					}
-				}
-				else if (values?.Length > 0)
-				{
-					// EnumToValue
-					int count = values.Length;
-					dictionary = new Dictionary<T, TValue>();
-					pairs = new Pair[count];
-					for (int i = 0; i < count; i++)
-					{
-						// ReSharper disable once PossibleInvalidCastException
-						T key = (T)(object)i;
-						TValue value = values[i];
-						pairs[i] = new Pair(key, value);
-						if (dictionary.ContainsKey(key)) continue;
-						dictionary.Add(key, value);
-					}
-
-					keys = null;
-					values = null;
-					Debug.Log(
-						$"{this} was upgraded. If you face serialisation issues please revert these changes and roll back Utilities to version 2.4.5. {dictionary.Count} values were ported."
-					);
-#if UNITY_EDITOR
-					EditorApplication.delayCall += EditorSceneManager.MarkAllScenesDirty;
-#endif
-					return;
-				}
+				// ReSharper disable PossibleNullReferenceException
+				(T key, TValue value) = pairs[i];
+				if (dictionary.ContainsKey(key)) continue;
+				dictionary.Add(key, value);
 			}
-#endif
-
-			{
-				dictionary = new Dictionary<T, TValue>();
-				for (int i = 0; i < pairsCount; i++)
-				{
-					// ReSharper disable PossibleNullReferenceException
-					(T key, TValue value) = pairs[i];
-					if (dictionary.ContainsKey(key)) continue;
-					dictionary.Add(key, value);
-				}
-			}
-
-#if !VERTX_ETV_EXCLUDE_OLD_SERIALIZATION
-			keys = null;
-			values = null;
-#endif
 		}
 	}
 }

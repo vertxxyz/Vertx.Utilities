@@ -4,6 +4,34 @@ All notable changes to this package will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
+## [4.0.0-pre.1]
+### Added
+- Added different pooling variants to InstancePool. These variants can be initialised using the InstancePool.Override(...) method.
+  You can also write your own pooling variants for use with InstancePool's static structure.
+- Added InstancePool.RemovePool(s) methods to cover clearing pools of all levels, and added a callback to handle pooled instances.
+- Added InstancePool.DefaultPoolHasSafetyChecks to switch pooling to a performant unchecked variant by default.
+- Added UIToolkit support to EnumToValue.
+- Added IList<T> extensions: RemoveUnordered and RemoveUnorderedAt.
+- Added Utils.EditorOnly and Utils.DebugOnly.
+- Added Bounds2D and NullableBounds2D.
+
+### Removed
+- Removed old serialization for EnumToValue. Please use version 3.1.1 and port EnumToValue data before moving to 4.0.0.
+- Removed CodeUtils.
+- Removed AssetInstance.
+- Removed StyleUtils. Please use default references to serialize StyleSheets into EditorWindows. Or use LoadAssetOfType.
+
+### Changed
+- Changed most internal access to an Assembly Definition Reference, bypassing reflection.
+- Simplified EnumToValue UI.
+- Renamed InstancePool.RemovePrefabPool to RemovePool.
+- Renamed FindBackingProperty to FindBackingPropertyRelative (and added FindBackingProperty to SerializedObject)
+
+### Fixed
+- Fixed issues with Instance Pool Debugger.
+
+### Known issues
+
 ## [3.1.1] - 2022-04-29
 - Improved serialization porting for EnumToValueDescription objects made in version 2.
 
@@ -25,10 +53,10 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Upgraded version requirement to 2020.1.
 - Added support for 2021.2+
 - Removed RotationUtils
-- EnumToValue
-- Removed EnumToValueDictionary, EnumToValue now handles all enum configurations
-- Ported data structures to a key value pair configuration. If you have issues with this, revert changes and switch to 2.4.5.
-- Fixed issues with multiple EnumToValues on the same object (or nested).
+- EnumToValue changes:
+    - Removed EnumToValueDictionary, EnumToValue now handles all enum configurations
+    - Ported data structures to a key value pair configuration. If you have issues with this, revert changes and switch to 2.4.5.
+    - Fixed issues with multiple EnumToValues on the same object (or nested).
 - Added Icon to IAdvancedDropdownItem
 - Added AdvancedDropdownOfSubtypes to replace AdvancedDropdownUtils.CreateAdvancedDropdownFromType
 

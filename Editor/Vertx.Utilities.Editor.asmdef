@@ -1,18 +1,26 @@
 {
-  "name": "Vertx.Utilities.Editor",
-  "rootNamespace": "Vertx.Utilities.Editor",
-  "references": [
-	"GUID:52dd4d866d63f4340922689e9cd83b77"
-  ],
-  "includePlatforms": [
-	"Editor"
-  ],
-  "excludePlatforms": [],
-  "allowUnsafeCode": false,
-  "overrideReferences": true,
-  "precompiledReferences": [],
-  "autoReferenced": true,
-  "defineConstraints": [],
-  "versionDefines": [],
-  "noEngineReferences": false
+    "name": "Vertx.Utilities.Editor",
+    "rootNamespace": "Vertx.Utilities.Editor",
+    "references": [
+        "GUID:52dd4d866d63f4340922689e9cd83b77",
+        "GUID:2bafac87e7f4b9b418d9448d219b01ab",
+        "GUID:0acc523941302664db1f4e527237feb3"
+    ],
+    "includePlatforms": [
+        "Editor"
+    ],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": true,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [
+        {
+            "name": "com.unity.modules.ui",
+            "expression": "0.0.0",
+            "define": "UNITY_UI"
+        }
+    ],
+    "noEngineReferences": false
 }

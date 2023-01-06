@@ -1,4 +1,5 @@
-﻿using System.Collections;
+﻿#if UNITY_UI
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Events;
@@ -237,3 +238,4 @@ namespace Vertx.Utilities
 		}
 	}
 }
+#endif
