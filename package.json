@@ -2,17 +2,17 @@
   "name": "com.vertx.utilities",
   "displayName": "Utilities",
   "version": "4.0.0-pre.1",
-    "unity": "2020.1",
+  "unity": "2020.1",
   "description": "General Utilities for Unity.",
   "author": {
-	"name": "Vertx",
-	"url": "https://github.com/vertxxyz"
+    "name": "Vertx",
+    "url": "https://github.com/vertxxyz"
   },
   "changelogUrl": "https://github.com/vertxxyz/Vertx.Utilities/blob/master/CHANGELOG.md",
   "documentationUrl": "https://github.com/vertxxyz/Vertx.Utilities/blob/master/README.md",
   "keywords": [],
   "category": "Tools",
   "dependencies": {
-    "com.unity.ugui" : "1.0.0"
+    "com.unity.test-framework": "1.0.0"
   }
 }

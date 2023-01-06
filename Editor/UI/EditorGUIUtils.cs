@@ -1,31 +1,12 @@
 ﻿using System;
 using UnityEngine;
 using UnityEditor;
+// ReSharper disable ConvertToNullCoalescingCompoundAssignment
 
 namespace Vertx.Utilities.Editor
 {
 	public static class EditorGUIUtils
 	{
-		#region Obsolete
-
-		[Obsolete("Please update packages that call this function. It has moved to " + nameof(EditorUtils))]
-		public static void SetProjectBrowserSearch(string search)
-			=> EditorUtils.SetProjectBrowserSearch(search);
-
-		[Obsolete("Please update packages that call this function. It has moved to " + nameof(EditorUtils))]
-		public static EditorWindow GetProjectBrowserWindow(bool forceOpen = false)
-			=> EditorUtils.GetProjectBrowserWindow(forceOpen);
-
-		[Obsolete("Please update packages that call this function. It has moved to " + nameof(EditorUtils))]
-		public static void ShowFolderContents(DefaultAsset o)
-			=> EditorUtils.ShowFolderContents(o);
-
-		[Obsolete("Please update packages that call this function. It has moved to " + nameof(EditorUtils))]
-		public static string GetCurrentlyFocusedProjectFolder()
-			=> EditorUtils.GetCurrentlyFocusedProjectFolder();
-
-		#endregion
-
 		#region Exponential Slider
 
 		public static void ExponentialSlider(SerializedProperty property, float yMin, float yMax, params GUILayoutOption[] options) =>
@@ -273,8 +254,8 @@ namespace Vertx.Utilities.Editor
 		public static Color InverseSplitterColor => !EditorGUIUtility.isProSkin ? SplitterColorPro : SplitterColorNonPro;
 		public static Color HeaderColor => !EditorGUIUtility.isProSkin ? new Color(1, 1, 1, 0.2f) : new Color(0.1f, 0.1f, 0.1f, 0.2f);
 
-		private static GUIStyle _smallTickbox;
-		public static GUIStyle SmallTickbox => _smallTickbox ?? (_smallTickbox = new GUIStyle("ShurikenCheckMark"));
+		private static GUIStyle s_SmallTickbox;
+		public static GUIStyle SmallTickbox => s_SmallTickbox ?? (s_SmallTickbox = new GUIStyle("ShurikenCheckMark"));
 
 		#endregion
 
@@ -317,18 +298,15 @@ namespace Vertx.Utilities.Editor
 			}
 		}
 
-		private static GUIStyle _headerBackground;
-		private static GUIStyle HeaderBackground => _headerBackground ?? (_headerBackground = "RL Header");
+		private static GUIStyle s_HeaderBackground;
+		private static GUIStyle HeaderBackground => s_HeaderBackground ?? (s_HeaderBackground = "RL Header");
 
-		private static GUIStyle _boxBackground;
-		private static GUIStyle BoxBackground => _boxBackground ?? (_boxBackground = "RL Background");
+		private static GUIStyle s_BoxBackground;
+		private static GUIStyle BoxBackground => s_BoxBackground ?? (s_BoxBackground = "RL Background");
 
-		private static GUIStyle _smallPadding;
+		private static GUIStyle s_SmallPadding;
 
-		private static GUIStyle SmallPadding => _smallPadding ?? (_smallPadding = new GUIStyle
-		{
-			padding = new RectOffset(6, 4, 2, 4)
-		});
+		private static GUIStyle SmallPadding => s_SmallPadding ?? (s_SmallPadding = new GUIStyle { padding = new RectOffset(6, 4, 2, 4) });
 
 		public static void DrawHeaderWithBackground(GUIContent label)
 		{
@@ -434,14 +412,14 @@ namespace Vertx.Utilities.Editor
 
 		#region ReorderableList
 
-		private static GUIStyle preButton;
-		private static GUIStyle footerBackground;
-		private static GUIStyle PreButton => preButton ?? (preButton = "RL FooterButton");
-		private static GUIStyle FooterBackground => footerBackground ?? (footerBackground = "RL Footer");
-		private static GUIContent iconToolbarPlusMore;
-		public static GUIContent IconToolbarPlusMore => iconToolbarPlusMore ?? (iconToolbarPlusMore = EditorGUIUtility.TrIconContent("Toolbar Plus More", "Choose to add to list"));
-		private static GUIContent iconToolbarPlus;
-		public static GUIContent IconToolbarPlus => iconToolbarPlus ?? (iconToolbarPlus = EditorGUIUtility.TrIconContent("Toolbar Plus", "Add to list"));
+		private static GUIStyle s_PreButton;
+		private static GUIStyle s_FooterBackground;
+		private static GUIStyle PreButton => s_PreButton ?? (s_PreButton = "RL FooterButton");
+		private static GUIStyle FooterBackground => s_FooterBackground ?? (s_FooterBackground = "RL Footer");
+		private static GUIContent s_IconToolbarPlusMore;
+		public static GUIContent IconToolbarPlusMore => s_IconToolbarPlusMore ?? (s_IconToolbarPlusMore = EditorGUIUtility.TrIconContent("Toolbar Plus More", "Choose to add to list"));
+		private static GUIContent s_IconToolbarPlus;
+		public static GUIContent IconToolbarPlus => s_IconToolbarPlus ?? (s_IconToolbarPlus = EditorGUIUtility.TrIconContent("Toolbar Plus", "Add to list"));
 
 		/// <summary>
 		/// Draws an alternate add button if run after a reorderable list's DoLayoutList function
@@ -482,23 +460,23 @@ namespace Vertx.Utilities.Editor
 
 		#region Styles
 
-		private static GUIStyle centeredMiniLabel;
+		private static GUIStyle s_CenteredMiniLabel;
 
-		public static GUIStyle CenteredMiniLabel => centeredMiniLabel ?? (centeredMiniLabel = new GUIStyle(EditorStyles.miniLabel)
+		public static GUIStyle CenteredMiniLabel => s_CenteredMiniLabel ?? (s_CenteredMiniLabel = new GUIStyle(EditorStyles.miniLabel)
 		{
 			alignment = TextAnchor.MiddleCenter
 		});
 
-		private static GUIStyle centeredBoldMiniLabel;
+		private static GUIStyle s_CenteredBoldMiniLabel;
 
-		public static GUIStyle CenteredBoldMiniLabel => centeredBoldMiniLabel ?? (centeredBoldMiniLabel = new GUIStyle(EditorStyles.miniBoldLabel)
+		public static GUIStyle CenteredBoldMiniLabel => s_CenteredBoldMiniLabel ?? (s_CenteredBoldMiniLabel = new GUIStyle(EditorStyles.miniBoldLabel)
 		{
 			alignment = TextAnchor.MiddleCenter
 		});
 
-		private static GUIStyle centeredBoldLabel;
+		private static GUIStyle s_CenteredBoldLabel;
 
-		public static GUIStyle CenteredBoldLabel => centeredBoldLabel ?? (centeredBoldLabel = new GUIStyle(EditorStyles.boldLabel)
+		public static GUIStyle CenteredBoldLabel => s_CenteredBoldLabel ?? (s_CenteredBoldLabel = new GUIStyle(EditorStyles.boldLabel)
 		{
 			alignment = TextAnchor.MiddleCenter
 		});

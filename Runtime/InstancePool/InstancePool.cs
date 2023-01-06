@@ -141,6 +141,7 @@ namespace Vertx.Utilities
 				prefab,
 				pool = InstancePool.DefaultPoolHasSafetyChecks
 					? new ExpandablePool<TInstanceType>(prefab)
+					// ReSharper disable once RedundantCast
 					: (IComponentPool<TInstanceType>) // 2019.4 needs this
 					new ExpandablePoolUnchecked<TInstanceType>(prefab)
 			);

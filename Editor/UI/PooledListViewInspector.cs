@@ -1,4 +1,5 @@
-﻿using UnityEditor;
+﻿#if UNITY_UI
+using UnityEditor;
 using UnityEditor.UIElements;
 using UnityEngine;
 using UnityEngine.UI;
@@ -104,3 +105,4 @@ namespace Vertx.Utilities.Editor
 		}
 	}
 }
+#endif

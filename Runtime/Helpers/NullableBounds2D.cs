@@ -238,7 +238,7 @@ namespace Vertx.Utilities
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
 		public string ToString(string format) => !_hasValue ? "Null" : _value.ToString(format);
 
-#if UNITY_2021_1_OR_NEWER
+#if UNITY_2020_1_OR_NEWER
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
 		public string ToString(string format, IFormatProvider formatProvider) => !_hasValue ? "Null" : _value.ToString(format, formatProvider);
 #endif

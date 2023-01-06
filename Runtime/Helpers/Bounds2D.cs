@@ -1,7 +1,5 @@
 using System;
-#if UNITY_2020_1_OR_NEWER
 using System.Globalization;
-#endif
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using UnityEngine;
@@ -186,7 +184,12 @@ namespace Vertx.Utilities
 
 		/// *listonly*
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
-		public override string ToString() => ToString(null, null);
+		public override string ToString() =>
+			ToString(null
+#if UNITY_2020_1_OR_NEWER
+				, null
+#endif
+			);
 
 		// Returns a nicely formatted string for the bounds.
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]

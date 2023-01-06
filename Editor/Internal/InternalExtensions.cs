@@ -2,7 +2,6 @@ using System;
 using System.Collections.Generic;
 using System.Reflection;
 using UnityEditor;
-using UnityEditor.UI;
 using UnityEngine;
 using UnityEngine.UIElements;
 
@@ -78,7 +77,7 @@ namespace Vertx.Utilities.Editor.Internal
 				a.width == b.width &&
 				a.height == b.height;
 		}
-		
+
 		public static void ShowFolderContents(int folderInstanceId)
 		{
 			MethodInfo showContentsMethod =
@@ -87,11 +86,11 @@ namespace Vertx.Utilities.Editor.Internal
 			if (browser != null)
 				showContentsMethod.Invoke(browser, new object[] { folderInstanceId, true });
 		}
-		
+
 		public static void SetProjectBrowserSearch(string search) => EditorWindow.GetWindow<ProjectBrowser>().SetSearch(search);
 
 		public static EditorWindow GetProjectBrowserWindow(bool forceOpen = false) => GetProjectBrowserWindowInternal(forceOpen);
-		
+
 		private static ProjectBrowser GetProjectBrowserWindowInternal(bool forceOpen = false)
 		{
 			ProjectBrowser projectBrowser = EditorWindow.GetWindow<ProjectBrowser>();
@@ -102,9 +101,9 @@ namespace Vertx.Utilities.Editor.Internal
 			EditorApplication.ExecuteMenuItem("Window/General/Project");
 			return EditorWindow.GetWindow<ProjectBrowser>();
 		}
-		
+
 		public static EditorWindow GetSceneViewHierarchyWindow(bool forceOpen = false) => GetSceneViewHierarchyWindowInternal(forceOpen);
-		
+
 		private static SceneHierarchyWindow GetSceneViewHierarchyWindowInternal(bool forceOpen = false)
 		{
 			SceneHierarchyWindow hierarchyWindow = EditorWindow.GetWindow<SceneHierarchyWindow>();
@@ -117,7 +116,7 @@ namespace Vertx.Utilities.Editor.Internal
 		}
 
 		public static int GetMainAssetInstanceID(string path) => AssetDatabase.GetMainAssetInstanceID(path);
-		
+
 		public static void SetSceneViewHierarchySearch(string search)
 		{
 			SceneHierarchyWindow window = GetSceneViewHierarchyWindowInternal();
@@ -126,13 +125,16 @@ namespace Vertx.Utilities.Editor.Internal
 		}
 
 		public static FieldInfo GetFieldInfoFromProperty(SerializedProperty property, out Type type) => ScriptAttributeUtility.GetFieldInfoFromProperty(property, out type);
-		
+
 		public static bool HasCustomPropertyDrawer(SerializedProperty property) => ScriptAttributeUtility.GetHandler(property).hasPropertyDrawer;
 
 #if !UNITY_2022_2_OR_NEWER
 		public static Gradient GetGradientValue(SerializedProperty property) => property.gradientValue;
 #endif
 
-		public static void AddScrollViewToSelectedObject() => MenuOptions.AddScrollView(new MenuCommand(Selection.activeObject));
+		public static void AddScrollViewToSelectedObject() =>
+			Type.GetType("UnityEditor.UI.MenuOptions,UnityEditor.UI")
+				.GetMethod("AddScrollView", BindingFlags.Static | BindingFlags.Public)
+				.Invoke(null, new object[] { new MenuCommand(Selection.activeObject) });
 	}
 }

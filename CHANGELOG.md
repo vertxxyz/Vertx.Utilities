@@ -13,6 +13,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added UIToolkit support to EnumToValue.
 - Added IList<T> extensions: RemoveUnordered and RemoveUnorderedAt.
 - Added Utils.EditorOnly and Utils.DebugOnly.
+- Added Bounds2D and NullableBounds2D.
 
 ### Removed
 - Removed old serialization for EnumToValue. Please use version 3.1.1 and port EnumToValue data before moving to 4.0.0.

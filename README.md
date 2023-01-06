@@ -12,6 +12,7 @@ General utilities for Unity.
     - [EnumToValue](#EnumToValue)
     - [PooledListView](#PooledListView)
     - [ProportionalValues](#ProportionalValues)
+    - [Bounds2D](#Bounds2D)
     - [NullableBounds](#NullableBounds)
     - [Extensions](#Extensions)
 - [Editor](#Editor)
@@ -195,6 +196,10 @@ private void Start()
     proportionalValues.OnValueChanged += (index, v) => sliders[index].SetValueWithoutNotify(v);
 }
 ```
+
+## Bounds2D
+`Bounds2D`, (and `NullableBounds2D`) is a parallel to `Bounds` that implements similar methods.  
+`Rect` is commonly used, but it's not built for purpose.
 
 ## NullableBounds
 `Bounds`, but `Encapsulate` doesn't expand from the default `(0,0,0)` when first called.  

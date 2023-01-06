@@ -3,7 +3,8 @@
     "rootNamespace": "Vertx.Utilities.Editor",
     "references": [
         "GUID:52dd4d866d63f4340922689e9cd83b77",
-        "GUID:343deaaf83e0cee4ca978e7df0b80d21"
+        "GUID:2bafac87e7f4b9b418d9448d219b01ab",
+        "GUID:0acc523941302664db1f4e527237feb3"
     ],
     "includePlatforms": [
         "Editor"
@@ -14,6 +15,12 @@
     "precompiledReferences": [],
     "autoReferenced": true,
     "defineConstraints": [],
-    "versionDefines": [],
+    "versionDefines": [
+        {
+            "name": "com.unity.modules.ui",
+            "expression": "0.0.0",
+            "define": "UNITY_UI"
+        }
+    ],
     "noEngineReferences": false
 }
