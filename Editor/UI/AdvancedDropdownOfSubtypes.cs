@@ -5,7 +5,7 @@ using UnityEditor;
 using UnityEditor.IMGUI.Controls;
 using UnityEngine;
 
-namespace Vertx.Utilities
+namespace Vertx.Utilities.Editor
 {
 	public class AdvancedDropdownOfSubtypes<T> : AdvancedDropdownOfSubtypes
 	{

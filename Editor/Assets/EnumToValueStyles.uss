@@ -1,0 +1,53 @@
+.vertx-enum-to-value__header-dropdown-background {
+    background-color: rgba(0, 0, 0, 0.1);
+    position: absolute;
+    top: 0;
+    left: -15px;
+    bottom: 0;
+    right: 0;
+}
+
+.vertx-enum-to-value__header-dropdown > .unity-foldout__content {
+    margin-left: 0;
+}
+
+.vertx-box {
+    margin-top: -3px;
+    min-height: 4px;
+    padding-bottom: 2px;
+}
+
+.vertx-box--outlined {
+    border-color: black;
+    border-width: 1px;
+}
+
+.vertx-header-dropdown > .unity-foldout__content {
+    margin-left: 0;
+}
+
+.vertx-enum-to-value__property > Toggle {
+    margin-left: 0;
+}
+
+.vertx-enum-to-value__property {
+    border-bottom-width: 1px;
+    border-bottom-color: black;
+}
+
+.vertx-enum-to-value__property:checked {
+    border-bottom-width: 0;
+}
+
+.vertx-enum-to-value__property > Toggle {
+    margin-bottom: 0;
+    padding-bottom: 1px;
+}
+
+.vertx-enum-to-value__property:checked > Toggle {
+    margin-bottom: 3px;
+}
+
+.vertx-enum-to-value__property--single-line > * > .unity-property-field__label {
+    padding-left: 5px;
+}

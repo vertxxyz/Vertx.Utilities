@@ -1,11 +1,10 @@
-﻿using System;
-using System.Reflection;
+﻿#if UNITY_UI
 using UnityEditor;
 using UnityEditor.UIElements;
 using UnityEngine;
 using UnityEngine.UI;
 using UnityEngine.UIElements;
-using Object = UnityEngine.Object;
+using Vertx.Utilities.Editor.Internal;
 
 namespace Vertx.Utilities.Editor
 {
@@ -79,9 +78,7 @@ namespace Vertx.Utilities.Editor
 		[MenuItem("GameObject/UI/Pooled List View", false, 2063)]
 		public static void AddPooledListView(MenuCommand menuCommand)
 		{
-			var menuOptionsType = Type.GetType("UnityEditor.UI.MenuOptions,UnityEditor.UI");
-			MethodInfo addScrollViewMethod = menuOptionsType.GetMethod("AddScrollView", BindingFlags.Public | BindingFlags.Static);
-			addScrollViewMethod.Invoke(null, new object[] { new MenuCommand(Selection.activeObject) });
+			InternalExtensions.AddScrollViewToSelectedObject();
 			//The created GameObject is set to the current selection, so we can retrieve it via there.
 			GameObject scrollView = Selection.activeGameObject;
 
@@ -108,3 +105,4 @@ namespace Vertx.Utilities.Editor
 		}
 	}
 }
+#endif

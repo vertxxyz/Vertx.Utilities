@@ -7,20 +7,20 @@ namespace Vertx.Utilities
 	/// </summary>
 	public class ProportionalValues
 	{
-		private readonly float[] values;
+		private readonly float[] _values;
 		public float Total { get; }
 		public event Action<int, float> OnValueChanged;
 
 		public ProportionalValues(float[] values, float total = 1)
 		{
-			this.values = values;
+			_values = values;
 			Total = total;
 			Setup();
 		}
 
 		public ProportionalValues(int count, float total = 1)
 		{
-			values = new float[count];
+			_values = new float[count];
 			Total = total;
 			Setup();
 		}
@@ -28,23 +28,23 @@ namespace Vertx.Utilities
 		private void Setup()
 		{
 			float valueTotal = 0;
-			foreach (float value in values)
+			foreach (float value in _values)
 				valueTotal += value;
 
 			if (valueTotal < 0.00001f)
 			{
-				float toBeDistributedDivided = Total / (values.Length - 1);
-				for (var i = 0; i < values.Length; i++)
-					values[i] = toBeDistributedDivided;
+				float toBeDistributedDivided = Total / (_values.Length - 1);
+				for (var i = 0; i < _values.Length; i++)
+					_values[i] = toBeDistributedDivided;
 			}
 			else
 			{
-				for (int i = 0; i < values.Length; i++)
-					values[i] /= valueTotal * Total;
+				for (int i = 0; i < _values.Length; i++)
+					_values[i] /= valueTotal * Total;
 			}
 		}
 
-		public int Length => values.Length;
+		public int Length => _values.Length;
 
 		public float this[int i]
 		{
@@ -54,27 +54,27 @@ namespace Vertx.Utilities
 
 		private float GetValue(int index)
 		{
-			if (index < 0 || index >= values.Length)
+			if (index < 0 || index >= _values.Length)
 				throw new IndexOutOfRangeException($"Index {index} does not exist in the {nameof(ProportionalValues)} current state. " +
 				                                   "You should create a new instance if the array size has changed.");
-			return values[index];
+			return _values[index];
 		}
 
 		private void SetValue(int index, float value)
 		{
-			if (index < 0 || index >= values.Length)
+			if (index < 0 || index >= _values.Length)
 				throw new IndexOutOfRangeException();
-			values[index] = value;
+			_values[index] = value;
 			float toBeDistributed = Total - value;
 
 			//If there's nothing to be distributed at all
 			if (toBeDistributed < 0.00001f)
 			{
 				//Reset all the other sliders to 0
-				for (int i = 0; i < values.Length; i++)
+				for (int i = 0; i < _values.Length; i++)
 				{
 					if (i == index) continue;
-					values[i] = 0;
+					_values[i] = 0;
 					OnValueChanged?.Invoke(i, 0);
 				}
 
@@ -83,21 +83,21 @@ namespace Vertx.Utilities
 
 			//Calculate the total amount of all the other sliders
 			float otherValuesTotal = 0;
-			for (int i = 0; i < values.Length; i++)
+			for (int i = 0; i < _values.Length; i++)
 			{
 				if (i == index) continue;
-				otherValuesTotal += values[i];
+				otherValuesTotal += _values[i];
 			}
 
 			//If none of the values can take up the remaining slack
 			if (otherValuesTotal < 0.00001f)
 			{
 				//just divide it between them all
-				float toBeDistributedDivided = toBeDistributed / (values.Length - 1);
-				for (int i = 0; i < values.Length; i++)
+				float toBeDistributedDivided = toBeDistributed / (_values.Length - 1);
+				for (int i = 0; i < _values.Length; i++)
 				{
 					if (i == index) continue;
-					values[i] = toBeDistributedDivided;
+					_values[i] = toBeDistributedDivided;
 					OnValueChanged?.Invoke(i, toBeDistributedDivided);
 				}
 
@@ -105,11 +105,11 @@ namespace Vertx.Utilities
 			}
 
 			//Distribute the remaining amount proportionally across the other values
-			for (int i = 0; i < values.Length; i++)
+			for (int i = 0; i < _values.Length; i++)
 			{
 				if (i == index) continue;
-				float v = values[i] / otherValuesTotal * toBeDistributed;
-				values[i] = v;
+				float v = _values[i] / otherValuesTotal * toBeDistributed;
+				_values[i] = v;
 				OnValueChanged?.Invoke(i, v);
 			}
 		}

@@ -1,7 +1,9 @@
 # Vertx.Utilities
 
-General Utilities for Unity.  
-Unity **2020.1+** (lower versions may be supported, but will miss features).
+General utilities for Unity.  
+
+> **Warning**  
+> Unity **2020.1+** (lower versions may be supported, but will miss features).
 
 ## Table Of Contents
 
@@ -10,8 +12,9 @@ Unity **2020.1+** (lower versions may be supported, but will miss features).
     - [EnumToValue](#EnumToValue)
     - [PooledListView](#PooledListView)
     - [ProportionalValues](#ProportionalValues)
+    - [Bounds2D](#Bounds2D)
     - [NullableBounds](#NullableBounds)
-    - [Misc](#Misc)
+    - [Extensions](#Extensions)
 - [Editor](#Editor)
     - [EditorUtils](#EditorUtils)
     - [EditorGUIUtils](#EditorGUIUtils)
@@ -27,11 +30,11 @@ Unity **2020.1+** (lower versions may be supported, but will miss features).
 
 ```cs
 // Retrieve or instance an object from the pool
-MyComponent instance = InstancePool.Get(prefab);
+MyComponent instance = InstancePool.Get(Prefab);
 
 // Return an instance to the pool.
 // The instance is moved to the Instance Pool scene and deactivated.
-InstancePool.Pool(prefab, instance);
+InstancePool.Pool(Prefab, instance);
 ```
 
 #### Capacity and TrimExcess
@@ -41,7 +44,7 @@ This is helpful when reloading a game/scene to ensure the pool never gets out of
 
 ```cs
 // Sets the pool to only keep 30 instances of a specific prefab when TrimExcess is called.
-InstancePool.SetCapacity(prefab, 30);
+InstancePool.SetCapacity(Prefab, 30);
 // Sets the pool to only keep 30 instances of all pooled PoolObject prefabs when TrimExcess is called.
 InstancePool.SetCapacities<PoolObject>(30);
 
@@ -50,23 +53,50 @@ InstancePool.TrimExcess();
 // Trims instances in the PoolObject pool down to their capacities (20 is the default argument)
 InstancePool.TrimExcess<PoolObject>();
 // Trims instances from a specific prefab down to its capacity (20 is the default argument)
-InstancePool.TrimExcess(prefab);
+InstancePool.TrimExcess(Prefab);
 ```
 
 #### Warmup
 
 ```cs
 // Instances and immediately pools 30 instances of prefab spread over 30 frames.
-StartCoroutine(InstancePool.WarmupCoroutine(prefab, 30));
+StartCoroutine(InstancePool.WarmupCoroutine(Prefab, 30));
 
 // Instances and immediately pools 30 instances of prefab.
-InstancePool.Warmup(prefab, 30);
+InstancePool.Warmup(Prefab, 30);
 ```
+
+#### Cleanup
+It's advised to avoid retaining references from pooled objects or prefabs to other objects in the scene. Clear these references before an object is pooled, then call `TrimExcess` instead to bring these allocated objects down to a predictable level.  
+When this cannot be achieved, because we're dealing with static pools you may want to ensure that they're completely unloaded at a safe point.  
+Having references from pooled objects retained in a pool is memory leak unless those references are reset in rotation, so the following methods allow you to clean up.
+
+```cs
+// Remove a pool from the system, and optionally handle what happens to the currently pooled instances.
+InstancePool.RemovePool(Prefab, instance => Destroy(instance.gameObject));
+// Remove all pools of a component type from the system, and optionally handle what happens to the currently pooled instances.
+InstancePool.RemovePools<MyComponent>(instance => Destroy(instance.gameObject));
+// Remove *all pools*, and optionally handle what happens to the currently pooled instances. This can be done to resolve all possible memory leaks.
+// You may also choose to unload the instance pool scene, but there is no utility method for doing this.
+InstancePool.RemovePools(instance => Destroy(instance.gameObject));
+```
+
+#### Variants
+You can use different types of pools with the `Override` method. Custom pools can also be created by inheriting from `IComponentPool<T>`.  
+Supported pool types are:  
+
+| Type                      | Description                                                                                                                                                                                                                                                                                                                                                                               |
+|---------------------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| `ExpandablePool`          | A pool that will expand to contain all instances pooled into it.<br/>Only instances that are freed to the pool can be returned by `Get`.                                                                                                                                                                                                                                                  |
+| `ExpandablePoolUnchecked` | `ExpandablePool`, but there are no safety checks performed in high-frequency operations.<br/>If abused, you can enter instances into the pool multiple times or destroy objects that are in the pool, which will result in logic errors and unhandled exceptions.                                                                                                                         |
+| `CircularPool`            | 	A fixed-capacity pool that uses the least recent entry when `Get` is called.<br/>Instances are always considered a part of the pool, and can be requested at any moment.<br/>The pool will grow to the internal size unless warmed up beforehand.<br/>This pool use useful in circumstances where there's a fixed count of an unimportant resource, like bullet hole decals for example. |
+
 
 ## EnumToValue
 
 **Data type for associating serialized data with an enum.**  
-This data is kept updated via the Inspector so to maintain parity it is important to inspect these fields when updating the associated enums.
+> **Note**  
+> This data is kept updated via the Inspector. To maintain parity it is important to inspect these fields when updating the associated enums.
 
 #### Example Types
 
@@ -90,17 +120,17 @@ public class ShapeElement
 
 #### Field Declaration
 
-You can optionally add the `[HideFirstEnumValue]` attribute to hide the None/0 enum if it is irrelevant.
+You can optionally add the `[HideFirstEnumValue]` attribute to hide the None/0 value if it is irrelevant.
 
 ```cs
 [SerializeField]
-private EnumToValue<Shape, ShapeElement> data;
+private EnumToValue<Shape, ShapeElement> _data;
 ```
 
 #### Usage Example
 
 ```cs
-[SerializeField] private Shape shape;
+[SerializeField] private Shape _shape;
 
 private void Start()
 {
@@ -111,7 +141,7 @@ private void Start()
         meshFilter = g.AddComponent<MeshFilter>();
     
     //Configure target components with our data
-    var value = data[shape];
+    var value = _data[_shape];
     g.name = value.Name;
     meshRenderer.sharedMaterial = value.Material;
     meshFilter.sharedMesh = value.Mesh;
@@ -167,118 +197,96 @@ private void Start()
 }
 ```
 
+## Bounds2D
+`Bounds2D`, (and `NullableBounds2D`) is a parallel to `Bounds` that implements similar methods.  
+`Rect` is commonly used, but it's not built for purpose.
+
 ## NullableBounds
 `Bounds`, but `Encapsulate` doesn't expand from the default `(0,0,0)` when first called.  
 If a value has not yet been assigned methods like `Intersects`, `IntersectRay`, `Contains`, will return false.  
 Other query methods have `TryGet` alternatives.  
 
-## Misc
+## Extensions
+| Name                                                        | Description                                                                                                                                           |
+|-------------------------------------------------------------|-------------------------------------------------------------------------------------------------------------------------------------------------------|
+| `IList<T>.RemoveUnordered`<br/>`IList<T>.RemoveUnorderedAt` | Removes an item from a list without caring about maintaining order.<br/>(Moves the last element into the hole and removes it from the end)            |
+| `UnityEngine.Object.TrimName`                               | Trims appended text from Object names. Will trim `(Clone)` by default.<br/>This is not recursive, and only will remove a single instance of the word. |
 
-#### TrimName
-
-Trims appended text from Object names. Will trim `(Clone)` by default.  
-This is not recursive, and only will remove a single instance of the word.
-
-```cs
-object.TrimName();
-```
+## Utils
+| Name         | Description                                                 |
+|--------------|-------------------------------------------------------------|
+| `EditorOnly` | A call to a lambda that will be stripped in builds.         |
+| `DebugOnly`  | A call to a lambda that will be stripped in release builds. |
 
 # Editor
-
 ## EditorUtils
 
 Many helper functions for random editor functionality I use, often or otherwise.
 
-- Assets
-    - `LoadAssetOfType`
-    - `LoadAssetsOfType`  
-      Loads assets matching a type with an optional name query.
-    - `TryGetGUIDs`
-- Folders
-    - `ShowFolderContents`
-    - `ShowFolder`
-    - `GetCurrentlyFocusedProjectFolder`
-- Project Browser
-    - `SetProjectBrowserSearch`
-    - `GetProjectBrowserWindow`
-- Editor Extensions
-    - `GetEditorExtensionsOfType`  
-      Returns lists of containing newly instanced classes that inherit from the provided type.
-- Scene
-    - `BuildSceneScope`  
-      A scope that can be enumerated that will iterate over the scenes in the Build Settings and reset when disposed. The scope also provides a method to draw a progress bar.
-    - `GetAllComponentsInScene`
-    - `GetAllGameObjectsInScene`  
-      Recursively iterates all Components/GameObjects
-    - `GetGameObjectsIncludingRoot`  
-      Recursively iterates a Transform hierarchy
-- Logging
-    - `GetPathForObject`  
-      Returns an appropriate full path to the object. This includes the scene if relevant.
-- Serialized Properties
-    - `FindBackingProperty`  
-      Finds a backing property by name. Ie. a field serialized with `[field: SerializeField]` or `[field: SerializeReference]`.
-    - `GetIndexFromArrayProperty`  
-      Gets the array index associated with a property via string manipulation.
-    - `LogAllProperties`  
-      Logs all properties on a SerializedObject
-    - `GetObjectFromProperty`
-      Retrieves the System.Object value associated with the property via reflection.
-    - `serializedProperty.GetPropertyValue()`  
-      Retrieves most basic System.Object values associated with the property via the property itself.
-    - `serializedProperty.ToFullString()`  
-      Attempts to log the value in the serialized property.
-    - `SimpleCopyTo`  
-      Simple automatic copy for most basic serialized property types.
-    - `SimpleCopyInto`
-      Copy an object of the same type into most basic serialized property types. Handles collections, but not generic objects. Combine with GetFields to get the most out of it.
-    - `Reverse`
-      Reverses serialized property arrays.
+| Name                                                     | Description                                                                                                                                                                |
+|----------------------------------------------------------|----------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| **Assets**                                               |
+| `LoadAssetOfType`<br/>`LoadAssetsOfType`                 | Loads assets matching a type with an optional name query.                                                                                                                  |
+| **Project Browser**                                      |
+| `GetProjectBrowserWindow`                                | Gets an instance of the project browser EditorWindow.                                                                                                                      |
+| `ShowFolderContents`                                     | Reveals the contents of a folder in the project browser.                                                                                                                   |
+| `GetCurrentlyFocusedProjectFolder`                       | Returns the currently focused folder in the project browser.                                                                                                               |
+| `SetProjectBrowserSearch`                                | Sets the value of the project browser search.                                                                                                                              |
+| **Editor Extensions**                                    |
+| `GetEditorExtensionsOfType`                              | Returns lists of containing newly instanced classes that inherit from the provided type.                                                                                   |
+| **Scene**                                                |
+| `BuildSceneScope`                                        | A scope that can be enumerated that will iterate over the scenes in the Build Settings and reset when disposed. The scope also provides a method to draw a progress bar.   |
+| `GetAllComponentsInScene`<br/>`GetAllGameObjectsInScene` | Recursively iterates all Components/GameObjects.                                                                                                                           |
+| `GetGameObjectsIncludingRoot`                            | Recursively iterates a Transform hierarchy.                                                                                                                                |
+| **Logging**                                              |
+| `GetPathForObject`                                       | Returns an appropriate full path to the object. This includes the scene if relevant.                                                                                       |
+| **Serialized Properties**                                |
+| `FindBackingProperty`<br/>`FindBackingPropertyRelative`  | Finds a backing property by name. Ie. a field serialized with `[field: SerializeField]` or `[field: SerializeReference]`.                                                  |
+| `GetIndexFromArrayProperty`                              | Gets the array index associated with a property via string manipulation.                                                                                                   |
+| `LogAllProperties`                                       | Logs all properties on a SerializedObject.                                                                                                                                 |
+| `GetPropertyValue`                                       | Retrieves most basic System.Object values associated with the property via the property itself.                                                                            |
+| `ToFullString`                                           | Attempts to log the value in the serialized property.                                                                                                                      |
+| `SimpleCopyTo`                                           | Simple automatic copy for most basic serialized property types.                                                                                                            |
+| `SimpleCopyInto`                                         | Copy an object of the same type into most basic serialized property types. Handles collections, but not generic objects. Combine with GetFields to get the most out of it. |
+| `Reverse`                                                | Reverses serialized property arrays.                                                                                                                                       |
 
 ## EditorGUIUtils
 
-Many helper functions for random editor GUI functionality I use, often or otherwise.
+Many helper functions for random editor IMGUI functionality I use.
 
 #### Controls and Decorations
 
-- `Exponential Slider`  
-  An slider that represents its values exponentially. Useful for things like camera FoV.
-- `DrawSplitter`  
-  Draws a horizontal rule.
-- `ButtonOverPreviousControl`  
-  Uses GUILayout.GetLastRect to draw a button over the last drawn control.
-- `OutlineScope`  
-  Wraps a group of controls to surround them in an outline/background.  
-  Similar in style to ReorderableList, so can be combined if drawn before a list with its header set to `headerHeight = 0`.
-- `DrawOutline`  
-  Manually draw an outline. Can be useful to surround a SerializedProperty in a PropertyDrawer.
-- `ContainerScope`  
-  Wraps a group of controls to surround them in an background. Also draws a header for the group.
+| Name                        | Description                                                                                                                                                                                        |
+|-----------------------------|----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| `Exponential Slider`        | A slider that represents its values exponentially. Useful for things like camera FoV.                                                                                                              |
+| `DrawSplitter`              | Draws a horizontal rule.                                                                                                                                                                           |
+| `ButtonOverPreviousControl` | Uses GUILayout.GetLastRect to draw a button over the last drawn control.                                                                                                                           |
+| `OutlineScope`              | Wraps a group of controls to surround them in an outline/background.<br/>Similar in style to ReorderableList, so can be combined if drawn before a list with its header set to `headerHeight = 0`. |
+| `DrawOutline`               | Manually draw an outline. Can be useful to surround a SerializedProperty in a PropertyDrawer.                                                                                                      |
+| `ContainerScope`            | Wraps a group of controls to surround them in an background. Also draws a header for the group.                                                                                                    |
 
 #### Helpers
 
-- `HeightWithSpacing`  
-  singleLineHeight + standardVerticalSpacing
-- `rect.NextGUIRect()`  
-  Advances the rect to the next position with a standardVerticalSpacing gap.
-- `rect.Indent()`
-- `rect.GetIndentedRect()`  
-  EditorGUI.IndentedRect alternatives.
-- `EditorGUIUtils.ZeroIndentScope`  
-  Temporarily resets EditorGUI.indentLevel
+| Name                                         | Description                                                                |
+|----------------------------------------------|----------------------------------------------------------------------------|
+| `HeightWithSpacing`                          | singleLineHeight + standardVerticalSpacing                                 |
+| `rect.NextGUIRect()`                         | Advances the rect to the next position with a standardVerticalSpacing gap. |
+| `rect.Indent()`<br/>`rect.GetIndentedRect()` | EditorGUI.IndentedRect alternatives.                                       |
+| `EditorGUIUtils.ZeroIndentScope`             | Temporarily resets EditorGUI.indentLevel.                                  |
 
 #### ReorderableList
 
-- `ReorderableListAddButton`  
-  Draws an alternate add button if run after a reorderable list's DoLayoutList function. Set `displayAdd = false` when initialising the list.
-- `ReorderableListHeaderClearButton`  
-  Draws a Clear button in the top right of a ReorderableList's header when run in the header callback.
+| Name                               | Description                                                                                                                                 |
+|------------------------------------|---------------------------------------------------------------------------------------------------------------------------------------------|
+| `ReorderableListAddButton`         | Draws an alternate add button if run after a reorderable list's DoLayoutList function. Set `displayAdd = false` when initialising the list. |
+| `ReorderableListHeaderClearButton` | Draws a Clear button in the top right of a ReorderableList's header when run in the header callback.                                        |
 
 #### Styles
 
-- `CenteredMiniLabel`
-- `CenteredBoldMiniLabel`
-- `CenteredBoldLabel`
+| Name                                            | Description                                                         |
+|-------------------------------------------------|---------------------------------------------------------------------|
+| `CenteredMiniLabel`<br/>`CenteredBoldMiniLabel` | Variations of `EditorStyles.miniLabel`/`EditorStyles.miniBoldLabel` |
+| `CenteredBoldLabel`                             | Variation of `EditorStyles.boldLabel`                               |
 
 ## AdvancedDropdownUtils
 
@@ -286,6 +294,11 @@ Many helper functions for random editor GUI functionality I use, often or otherw
 `IPropertyDropdownItem` can be implemented to provide names and paths (`"Folder/Sub Folder"`).  
 `CreateAdvancedDropdownFromAttribute` can generate an AdvancedDropdown from all types that implement an inherited `AdvancedDropdownAttribute`.  
 For dropdowns created from a type inheritance structure consider using `AdvancedDropdownOfSubtypes`.  
+
+---
+If you find this resource helpful:
+
+[![ko-fi](https://ko-fi.com/img/githubbutton_sm.svg)](https://ko-fi.com/Z8Z42ZYHB)
 
 ## Installation
 
@@ -315,7 +328,7 @@ To add it the package to your project:
 <details>
 <summary>Add from GitHub | <em>not recommended, no updates through UPM</em></summary>
 
-You can also add it directly from GitHub on Unity 2019.4+. Note that you won't be able to receive updates through Package Manager this way, you'll have to update manually.
+Note that you won't be able to receive updates through Package Manager this way, you'll have to update manually.
 
 - open Package Manager
 - click <kbd>+</kbd>
