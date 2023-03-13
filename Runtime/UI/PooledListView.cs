@@ -63,6 +63,14 @@ namespace Vertx.Utilities
 			if (!Application.IsPlaying(this))
 				return;
 
+			if (!InstancePool.HasPool<RectTransform, ExpandablePoolUnchecked<RectTransform>>(prefab))
+			{
+				InstancePool.Override(new ExpandablePoolUnchecked<RectTransform>(prefab)
+				{
+					LazyDeactivate = true
+				});
+			}
+
 			if (verticalScrollbar != null)
 			{
 				//I wish I didn't have to remove the listener, but otherwise the Snapped behaviour will not function properly.
@@ -153,7 +161,7 @@ namespace Vertx.Utilities
 
 			float zeroIndex = Mathf.Lerp(startIndex, endIndex, value);
 
-			if (snapping == Snapping.Snapped)
+			if (snapping == Snapping.Snapped && value < 1)
 			{
 				zeroIndex = Mathf.RoundToInt(zeroIndex);
 				value = Mathf.InverseLerp(startIndex, endIndex, zeroIndex);

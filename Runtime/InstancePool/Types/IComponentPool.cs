@@ -20,6 +20,12 @@ namespace Vertx.Utilities
 		/// The amount of pooled instances.
 		/// </summary>
 		int Count { get; }
+		
+		/// <summary>
+		/// When true, pooled instances are disabled at the end of LateUpdate instead of being disabled when they enter the pool. (Defaults to false).<br/>
+		/// This is useful in cases where instances may be immediately removed from the pool in the course of high-frequency operations.
+		/// </summary>
+		bool LazyDeactivate { get; set; }
 
 		/// <summary>
 		/// Ensures the pool has <see cref="count"/> number of instances of <see cref="Prefab"/> pooled.
@@ -64,5 +70,7 @@ namespace Vertx.Utilities
 		/// Destroys extra instances beyond the set capacity.
 		/// </summary>
 		void TrimExcess();
+
+		internal void LateUpdate();
 	}
 }

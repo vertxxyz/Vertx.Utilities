@@ -1,7 +1,7 @@
 {
   "name": "com.vertx.utilities",
   "displayName": "Utilities",
-  "version": "4.0.0-pre.1",
+  "version": "4.0.0",
   "unity": "2020.1",
   "description": "General Utilities for Unity.",
   "author": {

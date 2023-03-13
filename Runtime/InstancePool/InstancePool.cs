@@ -1,13 +1,23 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
+using UnityEditor;
 using UnityEngine;
+using UnityEngine.LowLevel;
+using UnityEngine.PlayerLoop;
 #if UNITY_ASSERTIONS
 using UnityEngine.Assertions;
 #endif
 using UnityEngine.SceneManagement;
+using Vertx.Utilities.PlayerLoop;
 
 // ReSharper disable MemberCanBePrivate.Global
+
+namespace Vertx.Utilities.PlayerLoop
+{
+	public struct VertxInstancePoolLateUpdate { }
+}
 
 namespace Vertx.Utilities
 {
@@ -23,6 +33,57 @@ namespace Vertx.Utilities
 
 		private static Scene s_instancePoolScene;
 		internal static readonly HashSet<IComponentPoolGroup> s_instancePools = new HashSet<IComponentPoolGroup>();
+		
+		/// <summary>
+		/// Queues <see cref="LateUpdate"/> into the <see cref="PostLateUpdate"/> portion of the player loop.
+		/// </summary>
+		[InitializeOnLoadMethod, RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSceneLoad)]
+		private static void InitialiseUpdate()
+		{
+			PlayerLoopSystem playerLoop = UnityEngine.LowLevel.PlayerLoop.GetCurrentPlayerLoop();
+			PlayerLoopSystem[] subsystems = playerLoop.subSystemList.ToArray();
+			Type earlyUpdate = typeof(PostLateUpdate);
+			InjectLastIn(earlyUpdate, typeof(VertxInstancePoolLateUpdate), LateUpdate);
+
+			playerLoop.subSystemList = subsystems;
+			UnityEngine.LowLevel.PlayerLoop.SetPlayerLoop(playerLoop);
+
+			void InjectLastIn(Type type, Type actionType, PlayerLoopSystem.UpdateFunction action)
+			{
+				for (int i = 0; i < subsystems.Length; i++)
+				{
+					if (subsystems[i].type != type)
+						continue;
+
+					var postLateUpdateSystem = subsystems[i];
+					PlayerLoopSystem[] source = postLateUpdateSystem.subSystemList;
+					for (int j = source.Length - 1; j >= 0; j--)
+					{
+						// Already appended time callback.
+						if (source[j].type == actionType)
+							return;
+					}
+
+					PlayerLoopSystem[] dest = new PlayerLoopSystem[source.Length + 1];
+					Array.Copy(source, 0, dest, 0, source.Length);
+					// ReSharper disable once UseIndexFromEndExpression
+					dest[dest.Length - 1] = new PlayerLoopSystem
+					{
+						type = actionType,
+						updateDelegate = action
+					};
+					subsystems[i].subSystemList = dest;
+				}
+			}
+		}
+
+		private static void LateUpdate()
+		{
+			foreach (IComponentPoolGroup pool in s_instancePools)
+			{
+				pool.LateUpdate();
+			}
+		}
 
 		/// <summary>
 		/// Gets the runtime scene InstancePool moves pooled instances to.
@@ -94,6 +155,7 @@ namespace Vertx.Utilities
 		void RemovePools(Action<Component> handlePooledInstance = null);
 
 		IDictionary PoolGroup { get; }
+		void LateUpdate();
 	}
 
 	public static partial class InstancePool<TInstanceType> where TInstanceType : Component
@@ -116,6 +178,12 @@ namespace Vertx.Utilities
 #endif
 
 		public IDictionary PoolGroup => _poolGroup;
+		
+		public void LateUpdate()
+		{
+			foreach (KeyValuePair<TInstanceType,IComponentPool<TInstanceType>> pair in _poolGroup)
+				pair.Value.LateUpdate();
+		}
 
 		/// <summary>
 		/// Dictionary of prefab components to pools.
@@ -154,6 +222,14 @@ namespace Vertx.Utilities
 		/// <param name="prefab">The prefab key.</param>
 		/// <returns>True if InstancePool contains a pool matching the prefab key.</returns>
 		public bool HasPool(TInstanceType prefab) => _poolGroup.ContainsKey(prefab);
+
+		/// <summary>
+		/// Try get a matching pool.
+		/// </summary>
+		/// <param name="prefab">The prefab key.</param>
+		/// <param name="pool">The matching pool.</param>
+		/// <returns>True if InstancePool contains a pool matching the prefab key.</returns>
+		public bool TryGetPool(TInstanceType prefab, out IComponentPool<TInstanceType> pool) => _poolGroup.TryGetValue(prefab, out pool);
 
 		/// <summary>
 		/// Returns the amount of pooled instances associated with a prefab key.

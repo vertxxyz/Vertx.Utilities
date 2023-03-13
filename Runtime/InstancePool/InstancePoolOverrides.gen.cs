@@ -25,6 +25,11 @@ namespace Vertx.Utilities
 		public static bool HasPool<TInstanceType>(TInstanceType prefab)
 			where TInstanceType : Component
 			=> InstancePool<TInstanceType>.HasPool(prefab);
+		
+		public static bool HasPool<TInstanceType, TPoolType>(TInstanceType prefab)
+			where TInstanceType : Component
+			where TPoolType : IComponentPool<TInstanceType>
+			=> InstancePool<TInstanceType>.HasPool<TPoolType>(prefab);
 
 		/// <summary>
 		/// Overrides the default <see cref="ExpandablePool{TInstanceType}"/> used by InstancePool with another instance.<br/>

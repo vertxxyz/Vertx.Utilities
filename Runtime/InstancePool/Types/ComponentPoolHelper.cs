@@ -76,8 +76,12 @@ namespace Vertx.Utilities
 				{
 					instance = Object.Instantiate(prefab, parent);
 					Transform t = instance.transform;
+#if UNITY_2021_3_OR_NEWER
+					t.SetLocalPositionAndRotation(position, rotation);
+#else
 					t.localPosition = position;
 					t.localRotation = rotation;
+#endif
 					t.localScale = localScale;
 					break;
 				}
@@ -105,7 +109,10 @@ namespace Vertx.Utilities
 			if (t.parent != parent)
 				t.SetParent(parent);
 			else
-				SceneManager.MoveGameObjectToScene(poppedInstanceGameObject, SceneManager.GetActiveScene());
+			{
+				if (t.parent == null)
+					SceneManager.MoveGameObjectToScene(poppedInstanceGameObject, SceneManager.GetActiveScene());
+			}
 
 			// Position
 			switch (space)
@@ -115,8 +122,12 @@ namespace Vertx.Utilities
 					t.localScale = localScale;
 					break;
 				case Space.Self:
+#if UNITY_2021_3_OR_NEWER
+					t.SetLocalPositionAndRotation(position, rotation);
+#else
 					t.localPosition = position;
 					t.localRotation = rotation;
+#endif
 					t.localScale = localScale;
 					break;
 				default:

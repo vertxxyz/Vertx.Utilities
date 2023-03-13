@@ -1,4 +1,5 @@
-﻿using System.Collections;
+﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using Object = UnityEngine.Object;
@@ -33,6 +34,18 @@ namespace Vertx.Utilities
 
 		/// <inheritdoc />
 		public int Count => _instances.Count;
+
+		/// <summary>
+		/// Unsupported for <see cref="CircularPool{TInstanceType}"/>.
+		/// </summary>
+		/// <exception cref="NotSupportedException"></exception>
+		public bool LazyDeactivate
+		{
+			get => throw GetLazyDeactivateException();
+			set => throw GetLazyDeactivateException();
+		}
+
+		private static NotSupportedException GetLazyDeactivateException() => new NotSupportedException($"{nameof(CircularPool<TInstanceType>)} does not support {nameof(LazyDeactivate)}.");
 
 		/// <inheritdoc />
 		public TInstanceType Prefab => _prefab;
@@ -96,7 +109,7 @@ namespace Vertx.Utilities
 		{
 			if (Contains(instance))
 			{
-				// Instance was pooled early. Just disable it.
+				// Instance was pooled early. Just disable it. LazyDeactivate cannot detect this case unless we keep a secondary list.
 				ComponentPoolHelper.DisableAndMoveToInstancePoolScene(instance);
 				return;
 			}
@@ -163,6 +176,8 @@ namespace Vertx.Utilities
 
 			_instances.Capacity = _capacity;
 		}
+
+		void IComponentPool<TInstanceType>.LateUpdate() { }
 
 		IEnumerator<TInstanceType> IEnumerable<TInstanceType>.GetEnumerator() => ((IEnumerable<TInstanceType>)_instances).GetEnumerator();
 

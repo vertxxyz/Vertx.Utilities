@@ -36,9 +36,13 @@ namespace Vertx.Utilities
 		/// <inheritdoc />
 		public int Count => _instances.Count;
 
+		/// <inheritdoc />
+		public bool LazyDeactivate { get; set; }
+
 		private readonly List<TInstanceType> _instances;
 		private readonly TInstanceType _prefab;
 		private int _capacity;
+		private int _firstIndexToDisable;
 
 		private ExpandablePoolUnchecked() { }
 
@@ -78,7 +82,16 @@ namespace Vertx.Utilities
 		public void Pool(TInstanceType instance)
 		{
 			_instances.Add(instance);
-			ComponentPoolHelper.DisableAndMoveToInstancePoolScene(instance);
+			if (!LazyDeactivate)
+			{
+				_firstIndexToDisable = _instances.Count; // Do not disable any instances in the pool as this occurs below.
+				ComponentPoolHelper.DisableAndMoveToInstancePoolScene(instance);
+			}
+			else
+			{
+				// Make sure this index is included in the indices to disable.
+				_firstIndexToDisable = Mathf.Min(_firstIndexToDisable, _instances.Count - 1);
+			}
 		}
 
 		/// <inheritdoc />
@@ -93,6 +106,13 @@ namespace Vertx.Utilities
 				Object.Destroy(instance.gameObject);
 				_instances.RemoveAt(i);
 			}
+		}
+
+		void IComponentPool<TInstanceType>.LateUpdate()
+		{
+			int pooledCount = _instances.Count;
+			for (; _firstIndexToDisable < pooledCount; _firstIndexToDisable++)
+				ComponentPoolHelper.DisableAndMoveToInstancePoolScene(_instances[_firstIndexToDisable]);
 		}
 
 		IEnumerator<TInstanceType> IEnumerable<TInstanceType>.GetEnumerator() => ((IEnumerable<TInstanceType>)_instances).GetEnumerator();

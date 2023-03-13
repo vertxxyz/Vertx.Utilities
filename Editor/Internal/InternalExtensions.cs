@@ -126,6 +126,9 @@ namespace Vertx.Utilities.Editor.Internal
 
 		public static FieldInfo GetFieldInfoFromProperty(SerializedProperty property, out Type type) => ScriptAttributeUtility.GetFieldInfoFromProperty(property, out type);
 
+		private static string GetTypeName(SerializedProperty property) => property.objectReferenceTypeString;
+		public static string GetFullTypeName(SerializedProperty property) => RuntimeClassMetadataUtils.ScriptingWrapperTypeNameForNativeID(UnityType.FindTypeByName(GetTypeName(property)).persistentTypeID);
+
 		public static bool HasCustomPropertyDrawer(SerializedProperty property) => ScriptAttributeUtility.GetHandler(property).hasPropertyDrawer;
 
 #if !UNITY_2022_2_OR_NEWER

@@ -4,7 +4,21 @@ All notable changes to this package will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
-## [4.0.0-pre.1]
+## [4.0.0] - 2023-03-13
+### Added
+- Added InstancePool.HasPool<T, TPool> to check whether a pool is already of a type.
+- Added IComponentPool<T>.LazyDeactivate. When true, pooled instances are disabled at the end of LateUpdate instead of being disabled when they enter the pool. (Defaults to false).
+
+### Fixed
+- Pooled List View now reaches bottom of the display while snapping is enabled.
+
+### Changed
+- Pooled List View uses LazyDeactivate to avoid repeatedly dirtying the UI hierarchy.
+
+### Improved
+- EditorUtils.GetFieldInfoFromProperty now attempts to get Types from native classes with no FieldInfo.
+
+## [4.0.0-pre.1] - 2023-01-06
 ### Added
 - Added different pooling variants to InstancePool. These variants can be initialised using the InstancePool.Override(...) method.
   You can also write your own pooling variants for use with InstancePool's static structure.
@@ -29,8 +43,6 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ### Fixed
 - Fixed issues with Instance Pool Debugger.
-
-### Known issues
 
 ## [3.1.1] - 2022-04-29
 - Improved serialization porting for EnumToValueDescription objects made in version 2.

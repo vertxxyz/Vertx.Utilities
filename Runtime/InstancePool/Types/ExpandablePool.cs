@@ -39,8 +39,12 @@ namespace Vertx.Utilities
 
 		/// <inheritdoc />
 		public int Count => _instances.Count;
+		
+		/// <inheritdoc />
+		public bool LazyDeactivate { get; set; }
 
 		private readonly HashSet<TInstanceType> _instances;
+		private readonly List<TInstanceType> _instancesToPool;
 		private readonly TInstanceType _prefab;
 		private int _capacity;
 
@@ -56,6 +60,7 @@ namespace Vertx.Utilities
 			Capacity = capacity;
 			_prefab = prefab;
 			_instances = new HashSet<TInstanceType>();
+			_instancesToPool = new List<TInstanceType>();
 		}
 
 		/// <inheritdoc />
@@ -111,7 +116,10 @@ namespace Vertx.Utilities
 #endif
 			}
 
-			ComponentPoolHelper.DisableAndMoveToInstancePoolScene(instance);
+			if (!LazyDeactivate)
+				ComponentPoolHelper.DisableAndMoveToInstancePoolScene(instance);
+			else
+				_instancesToPool.Add(instance);
 		}
 
 		/// <inheritdoc />
@@ -120,6 +128,9 @@ namespace Vertx.Utilities
 		public void TrimExcess(HashSet<TInstanceType> temp)
 		{
 			if (_instances.Count <= Capacity) return;
+
+			EnsureReadyForOperations();
+			
 			int c = 0;
 			foreach (var instance in _instances)
 			{
@@ -139,6 +150,24 @@ namespace Vertx.Utilities
 			if (_instances.Count <= Capacity) return;
 			using (HashSetPool<TInstanceType>.Get(out HashSet<TInstanceType> temp))
 				TrimExcess(temp);
+		}
+		
+		/// <summary>
+		/// LazyDeactivate may be in a strange place, so we should just make sure it's cleaned up and ready when a complex operation occurs.
+		/// </summary>
+		private void EnsureReadyForOperations() => ((IComponentPool<TInstanceType>)this).LateUpdate();
+
+		void IComponentPool<TInstanceType>.LateUpdate()
+		{
+			if (!LazyDeactivate)
+				return;
+			foreach (TInstanceType component in _instancesToPool)
+			{
+				// Only finish pooling instances if they're actually still in the pool.
+				if (!Contains(component)) continue;
+				ComponentPoolHelper.DisableAndMoveToInstancePoolScene(component);
+			}
+			_instancesToPool.Clear();
 		}
 
 		IEnumerator<TInstanceType> IEnumerable<TInstanceType>.GetEnumerator() => ((IEnumerable<TInstanceType>)_instances).GetEnumerator();

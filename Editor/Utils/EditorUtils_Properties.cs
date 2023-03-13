@@ -52,7 +52,7 @@ namespace Vertx.Utilities.Editor
 
 		public static SerializedProperty FindBackingPropertyRelative(this SerializedProperty property, string propertyName) =>
 			property.FindPropertyRelative($"<{propertyName}>k__BackingField");
-		
+
 		public static SerializedProperty FindBackingProperty(this SerializedObject property, string propertyName) =>
 			property.FindProperty($"<{propertyName}>k__BackingField");
 
@@ -153,7 +153,17 @@ namespace Vertx.Utilities.Editor
 		private static readonly Dictionary<string, (Type, FieldInfo)> baseTypeLookup = new Dictionary<string, (Type, FieldInfo)>();
 		private static object[] fieldInfoArray;
 
-		public static FieldInfo GetFieldInfoFromProperty(SerializedProperty property, out Type type) => InternalExtensions.GetFieldInfoFromProperty(property, out type);
+		public static FieldInfo GetFieldInfoFromProperty(SerializedProperty property, out Type type)
+		{
+			FieldInfo result = InternalExtensions.GetFieldInfoFromProperty(property, out type);
+			if (type != null)
+				return result;
+
+			string typeName = InternalExtensions.GetFullTypeName(property);
+			string[] strings = typeName.Split(new[] { '.' }, 2);
+			type = Type.GetType(strings.Length > 1 ? $"{typeName},{strings[0]}" : $"{typeName},UnityEngine");
+			return result;
+		}
 
 		/// <summary>
 		/// Gets the backing object from a serialized property.
@@ -384,7 +394,6 @@ namespace Vertx.Utilities.Editor
 		private static Gradient GetGradientValue(SerializedProperty property)
 #if UNITY_2022_2_OR_NEWER
 			=> property.gradientValue;
-
 #else
 			=> InternalExtensions.GetGradientValue(property);
 #endif
