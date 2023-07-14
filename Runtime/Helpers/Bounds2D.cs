@@ -26,17 +26,17 @@ namespace Vertx.Utilities
 
 		// used to allow Bounds2D to be used as keys in hash tables
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
-		public override int GetHashCode() => center.GetHashCode() ^ (extents.GetHashCode() << 2);
+		public override int GetHashCode() => Center.GetHashCode() ^ (Extents.GetHashCode() << 2);
 
 		// also required for being able to use Vector4s as keys in hash tables
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
 		public override bool Equals(object other) => other is Bounds2D bounds2D && Equals(bounds2D);
 
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
-		public bool Equals(Bounds2D other) => center.Equals(other.center) && extents.Equals(other.extents);
+		public bool Equals(Bounds2D other) => Center.Equals(other.Center) && Extents.Equals(other.Extents);
 
 		// The center of the bounding box.
-		public Vector2 center
+		public Vector2 Center
 		{
 			[MethodImpl(MethodImplOptions.AggressiveInlining)]
 			get => _center;
@@ -45,7 +45,7 @@ namespace Vertx.Utilities
 		}
 
 		// The total size of the box. This is always twice as large as the ::ref::extents.
-		public Vector2 size
+		public Vector2 Size
 		{
 			[MethodImpl(MethodImplOptions.AggressiveInlining)]
 			get => _extents * 2.0F;
@@ -54,7 +54,7 @@ namespace Vertx.Utilities
 		}
 
 		// The extents of the box. This is always half of the ::ref::size.
-		public Vector2 extents
+		public Vector2 Extents
 		{
 			[MethodImpl(MethodImplOptions.AggressiveInlining)]
 			get => _extents;
@@ -63,21 +63,21 @@ namespace Vertx.Utilities
 		}
 
 		// The minimal point of the box. This is always equal to ''center-extents''.
-		public Vector2 min
+		public Vector2 Min
 		{
 			[MethodImpl(MethodImplOptions.AggressiveInlining)]
-			get => center - extents;
+			get => Center - Extents;
 			[MethodImpl(MethodImplOptions.AggressiveInlining)]
-			set => SetMinMax(value, max);
+			set => SetMinMax(value, Max);
 		}
 
 		// The maximal point of the box. This is always equal to ''center+extents''.
-		public Vector2 max
+		public Vector2 Max
 		{
 			[MethodImpl(MethodImplOptions.AggressiveInlining)]
-			get => center + extents;
+			get => Center + Extents;
 			[MethodImpl(MethodImplOptions.AggressiveInlining)]
-			set => SetMinMax(min, value);
+			set => SetMinMax(Min, value);
 		}
 
 		//*undoc*
@@ -85,7 +85,7 @@ namespace Vertx.Utilities
 		public static bool operator ==(Bounds2D lhs, Bounds2D rhs)
 		{
 			// Returns false in the presence of NaN values.
-			return lhs.center == rhs.center && lhs.extents == rhs.extents;
+			return lhs.Center == rhs.Center && lhs.Extents == rhs.Extents;
 		}
 
 		//*undoc*
@@ -97,20 +97,20 @@ namespace Vertx.Utilities
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
 		public void SetMinMax(Vector2 min, Vector2 max)
 		{
-			extents = (max - min) * 0.5F;
-			center = min + extents;
+			Extents = (max - min) * 0.5F;
+			Center = min + Extents;
 		}
 
 		// Grows the Bounds2D to include the /point/.
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
-		public void Encapsulate(Vector2 point) => SetMinMax(Vector2.Min(min, point), Vector2.Max(max, point));
+		public void Encapsulate(Vector2 point) => SetMinMax(Vector2.Min(Min, point), Vector2.Max(Max, point));
 
 		// Grows the Bounds2D to include the /Bounds/.
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
 		public void Encapsulate(Bounds2D bounds)
 		{
-			Encapsulate(bounds.center - bounds.extents);
-			Encapsulate(bounds.center + bounds.extents);
+			Encapsulate(bounds.Center - bounds.Extents);
+			Encapsulate(bounds.Center + bounds.Extents);
 		}
 
 		// Expand the Bounds2D by increasing its /size/ by /amount/ along each side.
@@ -118,56 +118,56 @@ namespace Vertx.Utilities
 		public void Expand(float amount)
 		{
 			amount *= .5f;
-			extents += new Vector2(amount, amount);
+			Extents += new Vector2(amount, amount);
 		}
 
 		// Expand the Bounds2D by increasing its /size/ by /amount/ along each side.
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
-		public void Expand(Vector2 amount) => extents += amount * .5f;
+		public void Expand(Vector2 amount) => Extents += amount * .5f;
 
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
 		public bool Contains(Vector2 point) =>
-			min.x <= point.x && max.x >= point.x &&
-			min.y <= point.y && max.y >= point.y;
+			Min.x <= point.x && Max.x >= point.x &&
+			Min.y <= point.y && Max.y >= point.y;
 
 		// Does another bounding box intersect with this bounding box?
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
 		public bool Intersects(Bounds2D bounds) =>
-			min.x <= bounds.max.x && max.x >= bounds.min.x &&
-			min.y <= bounds.max.y && max.y >= bounds.min.y;
+			Min.x <= bounds.Max.x && Max.x >= bounds.Min.x &&
+			Min.y <= bounds.Max.y && Max.y >= bounds.Min.y;
 
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
-		public bool IntersectRay(Ray ray) => new Bounds(center, size).IntersectRay(ray, out float _);
+		public bool IntersectRay(Ray ray) => new Bounds(Center, Size).IntersectRay(ray, out float _);
 
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
-		public bool IntersectRay(Ray ray, out float distance) => new Bounds(center, size).IntersectRay(ray, out distance);
+		public bool IntersectRay(Ray ray, out float distance) => new Bounds(Center, Size).IntersectRay(ray, out distance);
 
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
 		public Vector2 ClosestPoint(Vector2 point)
 		{
-			if (point.x < min.x)
+			if (point.x < Min.x)
 			{
-				if (point.y < min.y)
-					return min;
-				if (point.y > max.y)
-					return new Vector2(min.x, max.y);
-				return new Vector2(min.x, point.y);
+				if (point.y < Min.y)
+					return Min;
+				if (point.y > Max.y)
+					return new Vector2(Min.x, Max.y);
+				return new Vector2(Min.x, point.y);
 			}
 
-			if (point.x > max.x)
+			if (point.x > Max.x)
 			{
-				if (point.y < min.y)
-					return new Vector2(max.x, min.y);
-				if (point.y > max.y)
-					return max;
-				return new Vector2(max.x, point.y);
+				if (point.y < Min.y)
+					return new Vector2(Max.x, Min.y);
+				if (point.y > Max.y)
+					return Max;
+				return new Vector2(Max.x, point.y);
 			}
 
-			if (point.y < min.y)
-				return new Vector2(point.x, min.y);
+			if (point.y < Min.y)
+				return new Vector2(point.x, Min.y);
 
-			if (point.y > max.y)
-				return new Vector2(point.x, max.y);
+			if (point.y > Max.y)
+				return new Vector2(point.x, Max.y);
 
 			return point;
 		}
@@ -175,12 +175,12 @@ namespace Vertx.Utilities
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
 		public float SignedDistance(Vector2 point)
 		{
-			point -= center;
-			Vector2 d = new Vector2(Mathf.Abs(point.x), Mathf.Abs(point.y)) - extents;
+			point -= Center;
+			Vector2 d = new Vector2(Mathf.Abs(point.x), Mathf.Abs(point.y)) - Extents;
 			return Vector2.Max(d, Vector2.zero).magnitude + Mathf.Min(Mathf.Max(d.x, d.y), 0);
 		}
 		
-		public static implicit operator Rect(Bounds2D bounds2D) => new Rect(bounds2D.min, bounds2D.size);
+		public static implicit operator Rect(Bounds2D bounds2D) => new Rect(bounds2D.Min, bounds2D.Size);
 
 		/// *listonly*
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]

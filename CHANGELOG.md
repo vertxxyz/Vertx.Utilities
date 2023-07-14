@@ -4,6 +4,12 @@ All notable changes to this package will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
+## [4.1.0]
+### Added
+- Bounds2DInt and NullableBounds2DInt.
+### Changed
+- Bounds2D's members are now pascal case.
+
 ## [4.0.0] - 2023-03-13
 ### Added
 - Added InstancePool.HasPool<T, TPool> to check whether a pool is already of a type.

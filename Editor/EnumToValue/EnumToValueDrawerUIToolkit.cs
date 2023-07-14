@@ -35,7 +35,8 @@ namespace Vertx.Utilities.Editor
 			var foldout = new Foldout
 			{
 				value = property.isExpanded,
-				text = property.displayName
+				text = property.displayName,
+				bindingPath = property.propertyPath
 			};
 			AddBackgroundToFoldout(foldout);
 			foldout.styleSheets.Add(_styleSheet);

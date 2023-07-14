@@ -2,7 +2,8 @@
     "name": "Vertx.Utilities.Runtime",
     "rootNamespace": "Vertx.Utilities",
     "references": [
-        "GUID:2bafac87e7f4b9b418d9448d219b01ab"
+        "GUID:2bafac87e7f4b9b418d9448d219b01ab",
+        "GUID:d8b63aba1907145bea998dd612889d6b"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],
@@ -16,6 +17,11 @@
             "name": "com.unity.modules.ui",
             "expression": "0.0.0",
             "define": "UNITY_UI"
+        },
+        {
+            "name": "com.unity.mathematics",
+            "expression": "0.0.0",
+            "define": "UNITY_MATHEMATICS"
         }
     ],
     "noEngineReferences": false

@@ -603,5 +603,10 @@ namespace Vertx.Utilities.Editor
 		}
 
 		public static bool HasCustomPropertyDrawer(SerializedProperty property) => InternalExtensions.HasCustomPropertyDrawer(property);
+
+#if UNITY_2020_1_OR_NEWER
+		public static bool GetTypeFromManagedReferenceFullTypeName(string managedReferenceFullTypename, out Type managedReferenceInstanceType) 
+			=> InternalExtensions.GetTypeFromManagedReferenceFullTypeName(managedReferenceFullTypename, out managedReferenceInstanceType);
+#endif
 	}
 }

@@ -87,9 +87,11 @@ namespace Vertx.Utilities.Editor.Internal
 				showContentsMethod.Invoke(browser, new object[] { folderInstanceId, true });
 		}
 
-		public static void SetProjectBrowserSearch(string search) => EditorWindow.GetWindow<ProjectBrowser>().SetSearch(search);
+		public static void SetProjectBrowserSearch(string search) 
+			=> EditorWindow.GetWindow<ProjectBrowser>().SetSearch(search);
 
-		public static EditorWindow GetProjectBrowserWindow(bool forceOpen = false) => GetProjectBrowserWindowInternal(forceOpen);
+		public static EditorWindow GetProjectBrowserWindow(bool forceOpen = false) 
+			=> GetProjectBrowserWindowInternal(forceOpen);
 
 		private static ProjectBrowser GetProjectBrowserWindowInternal(bool forceOpen = false)
 		{
@@ -102,7 +104,8 @@ namespace Vertx.Utilities.Editor.Internal
 			return EditorWindow.GetWindow<ProjectBrowser>();
 		}
 
-		public static EditorWindow GetSceneViewHierarchyWindow(bool forceOpen = false) => GetSceneViewHierarchyWindowInternal(forceOpen);
+		public static EditorWindow GetSceneViewHierarchyWindow(bool forceOpen = false)
+			=> GetSceneViewHierarchyWindowInternal(forceOpen);
 
 		private static SceneHierarchyWindow GetSceneViewHierarchyWindowInternal(bool forceOpen = false)
 		{
@@ -124,12 +127,16 @@ namespace Vertx.Utilities.Editor.Internal
 			window.SetSearchFilter(search, SearchableEditorWindow.SearchMode.All, false);
 		}
 
-		public static FieldInfo GetFieldInfoFromProperty(SerializedProperty property, out Type type) => ScriptAttributeUtility.GetFieldInfoFromProperty(property, out type);
+		public static FieldInfo GetFieldInfoFromProperty(SerializedProperty property, out Type type) 
+			=> ScriptAttributeUtility.GetFieldInfoFromProperty(property, out type);
 
-		private static string GetTypeName(SerializedProperty property) => property.objectReferenceTypeString;
-		public static string GetFullTypeName(SerializedProperty property) => RuntimeClassMetadataUtils.ScriptingWrapperTypeNameForNativeID(UnityType.FindTypeByName(GetTypeName(property)).persistentTypeID);
+		private static string GetTypeName(SerializedProperty property) 
+			=> property.objectReferenceTypeString;
+		public static string GetFullTypeName(SerializedProperty property)
+			=> RuntimeClassMetadataUtils.ScriptingWrapperTypeNameForNativeID(UnityType.FindTypeByName(GetTypeName(property)).persistentTypeID);
 
-		public static bool HasCustomPropertyDrawer(SerializedProperty property) => ScriptAttributeUtility.GetHandler(property).hasPropertyDrawer;
+		public static bool HasCustomPropertyDrawer(SerializedProperty property) 
+			=> ScriptAttributeUtility.GetHandler(property).hasPropertyDrawer;
 
 #if !UNITY_2022_2_OR_NEWER
 		public static Gradient GetGradientValue(SerializedProperty property) => property.gradientValue;
@@ -139,5 +146,10 @@ namespace Vertx.Utilities.Editor.Internal
 			Type.GetType("UnityEditor.UI.MenuOptions,UnityEditor.UI")
 				.GetMethod("AddScrollView", BindingFlags.Static | BindingFlags.Public)
 				.Invoke(null, new object[] { new MenuCommand(Selection.activeObject) });
+
+#if UNITY_2020_1_OR_NEWER
+		public static bool GetTypeFromManagedReferenceFullTypeName(string managedReferenceFullTypename, out Type managedReferenceInstanceType) 
+			=> ScriptAttributeUtility.GetTypeFromManagedReferenceFullTypeName(managedReferenceFullTypename, out managedReferenceInstanceType);
+#endif
 	}
 }
