@@ -194,7 +194,7 @@ namespace Vertx.Utilities
 				return false;
 			}
 
-			distance = _value.SignedDistance(point);
+			distance = _value.SignedDistance((Vector2)point);
 			return true;
 		}
 
@@ -209,7 +209,7 @@ namespace Vertx.Utilities
 				return 0;
 			}
 
-			return _value.SignedDistance(point);
+			return _value.SignedDistance((Vector2)point);
 		}
 
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]

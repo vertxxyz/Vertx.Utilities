@@ -78,13 +78,20 @@ namespace Vertx.Utilities.Editor.Internal
 				a.height == b.height;
 		}
 
-		public static void ShowFolderContents(int folderInstanceId)
+		
+		public static void ShowFolderContents(
+#if UNITY_6000_5_OR_NEWER
+			EntityId folderEntityId
+#else
+			int folderEntityId
+#endif
+		)
 		{
 			MethodInfo showContentsMethod =
 				typeof(ProjectBrowser).GetMethod("ShowFolderContents", BindingFlags.NonPublic | BindingFlags.Instance);
 			ProjectBrowser browser = GetProjectBrowserWindowInternal();
 			if (browser != null)
-				showContentsMethod.Invoke(browser, new object[] { folderInstanceId, true });
+				showContentsMethod.Invoke(browser, new object[] { folderEntityId, true });
 		}
 
 		public static void SetProjectBrowserSearch(string search) 
@@ -118,7 +125,11 @@ namespace Vertx.Utilities.Editor.Internal
 			return EditorWindow.GetWindow<SceneHierarchyWindow>();
 		}
 
+#if UNITY_6000_5_OR_NEWER
+		public static EntityId GetMainAssetEntityId(string path) => AssetDatabase.GetMainAssetEntityId(path);
+#else
 		public static int GetMainAssetInstanceID(string path) => AssetDatabase.GetMainAssetInstanceID(path);
+#endif
 
 		public static void SetSceneViewHierarchySearch(string search)
 		{

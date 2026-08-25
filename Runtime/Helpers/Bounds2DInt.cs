@@ -236,7 +236,7 @@ namespace Vertx.Utilities
 		public bool Contains(int2 point) => Contains(new Vector2Int(point.x, point.y));
 		
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
-		public float SignedDistance(int2 point) => SignedDistance(new Vector2Int(point.x, point.y));
+		public float SignedDistance(int2 point) => SignedDistance(new Vector2(point.x, point.y));
 		
 		public void Expand(int2 amount) => Expand(new Vector2Int(amount.x, amount.y));
 #endif
