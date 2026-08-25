@@ -19,12 +19,20 @@ namespace Vertx.Utilities.Editor
 		private readonly bool _rootTypeIsGeneric;
 		private readonly Func<Type, bool> _performConstraint;
 		private readonly Action<Type> _onTypeSelected;
+		
+		/// <summary>
+		/// Sometimes you may need to provide a custom naming solution, like trimming suffixes/prefixes, or fixing names of subtypes.<br/>
+		/// You can provide a map between types and names by overriding this delegate.
+		/// </summary>
+		public Func<Type, string> NameRemap { get; set; }
 
 		private class TypeDropdownItem : AdvancedDropdownItem
 		{
 			public Type Type;
 
-			public TypeDropdownItem(Type type) : base(ObjectNames.NicifyVariableName(type.Name)) => Type = type;
+			public TypeDropdownItem(Type type, Func<Type, string> nameRemap)
+				: base(nameRemap?.Invoke(type) ?? ObjectNames.NicifyVariableName(type.Name))
+				=> Type = type;
 		}
 
 		public AdvancedDropdownOfSubtypes(
@@ -52,10 +60,20 @@ namespace Vertx.Utilities.Editor
 				? TypeCache.GetTypesDerivedFrom(_rootType).Where(_performConstraint).ToList()
 				: TypeCache.GetTypesDerivedFrom(_rootType).ToList();
 
+			bool useRoot = !_rootType.Assembly.IsDynamic && // Dynamic types are completely irrelevant.
+			               !_rootType.IsInterface && // No idea how to serialize an interface alone.
+			               !_rootType.IsPointer && // Again, no.
+			               !_rootType.IsAbstract && // Cannot serialize an abstract instance.
+			               !_rootType.IsArray;
+
+			if (useRoot)
+				allTypes.Add(_rootType);
+
 			List<string> allNameSpaces = allTypes.Select(t => ToNamespace(t.Namespace)).Distinct().ToList();
 			Dictionary<Type, TypeDropdownItem> typesToItems = new Dictionary<Type, TypeDropdownItem>();
 			Dictionary<string, AdvancedDropdownItem> namespaceToRootItem =
 				new Dictionary<string, AdvancedDropdownItem>();
+
 
 			// Add namespace roots as required.
 			if (allNameSpaces.Count == 1)
@@ -71,6 +89,15 @@ namespace Vertx.Utilities.Editor
 				}
 			}
 
+			if (useRoot)
+			{
+				TypeDropdownItem e;
+				typesToItems.Add(_rootType, e = new TypeDropdownItem(_rootType, NameRemap));
+				e.Type = _rootType;
+				allTypes.RemoveAt(allTypes.Count - 1);
+				namespaceToRootItem[ToNamespace(_rootType.Namespace)].AddChild(e);
+			}
+
 			foreach (Type type in allTypes)
 				Append(typesToItems, namespaceToRootItem[ToNamespace(type.Namespace)], type);
 
@@ -84,7 +111,7 @@ namespace Vertx.Utilities.Editor
 			TypeDropdownItem item = null;
 			do
 			{
-				var newItem = new TypeDropdownItem(type);
+				var newItem = new TypeDropdownItem(type, NameRemap);
 				if (item != null)
 					newItem.AddChild(item);
 
@@ -92,7 +119,7 @@ namespace Vertx.Utilities.Editor
 				{
 					// If this item has already been added to the list it means another subtype has created its tree. Just add this item as a child.
 					if (!typesToItems.TryGetValue(_rootType, out TypeDropdownItem me))
-						typesToItems.Add(_rootType, me = new TypeDropdownItem(_rootType));
+						typesToItems.Add(_rootType, me = new TypeDropdownItem(_rootType, NameRemap));
 					me.AddChild(newItem);
 					me.Type = null;
 					typesToItems.Add(type, item = newItem);
@@ -123,7 +150,7 @@ namespace Vertx.Utilities.Editor
 					// Move the parent to become a child
 					// (nullifying its type is our way of defining it as moved,
 					// AdvancedDropdown item helpfully provides no info, and I don't want to allocate more.)
-					parent.AddChild(new TypeDropdownItem(parent.Type));
+					parent.AddChild(new TypeDropdownItem(parent.Type, NameRemap));
 					parent.Type = null;
 				}
 

@@ -95,7 +95,11 @@ namespace Vertx.Utilities.Editor
 
 		#region Folders
 		
+#if UNITY_6000_5_OR_NEWER
+		public static EntityId GetMainAssetEntityId(string path) => InternalExtensions.GetMainAssetEntityId(path);
+#else
 		public static int GetMainAssetInstanceID(string path) => InternalExtensions.GetMainAssetInstanceID(path);
+#endif
 
 		public static void ShowFolderContents(DefaultAsset o)
 		{
@@ -113,7 +117,11 @@ namespace Vertx.Utilities.Editor
 			if (Path.GetFileName(path).Contains("."))
 				return; // DefaultAsset is a file.
 			InternalExtensions.ShowFolderContents(
+#if UNITY_6000_5_OR_NEWER
+				InternalExtensions.GetMainAssetEntityId(AssetDatabase.GUIDToAssetPath(AssetDatabase.AssetPathToGUID(path)))
+#else
 				InternalExtensions.GetMainAssetInstanceID(AssetDatabase.GUIDToAssetPath(AssetDatabase.AssetPathToGUID(path)))
+#endif
 			);
 			GetProjectBrowserWindow(true).Repaint();
 		}
